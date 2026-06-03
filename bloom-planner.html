@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bloom — Your Life Planner</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --rose:#e8a0b4;--rose-mid:#f2c4d0;--rose-light:#fbe8ed;--rose-pale:#fdf4f6;
+  --rose-deep:#c8748c;--rose-dark:#9a3a5a;
+  --sage:#8fada0;--sage-light:#d4e8e0;
+  --gold:#c9a96e;--gold-light:#f0e4cc;
+  --ink:#2a1a1e;--ink-mid:#5a3a42;--ink-light:#9a7a82;--ink-faint:#e8d8dc;
+  --white:#ffffff;--cream:#fdf8f5;
+  --font-display:'Cormorant Garamond',serif;
+  --font-body:'DM Sans',sans-serif;
+  --shadow:0 4px 24px rgba(42,26,30,0.10);
+  --shadow-lg:0 8px 40px rgba(42,26,30,0.15);
+}
+html,body{height:100%;overflow:hidden}
+body{font-family:var(--font-body);background:var(--cream);color:var(--ink);font-size:13px}
+
+/* ═══════════════ SCREEN SYSTEM ═══════════════ */
+.screen{display:none;height:100vh;overflow:hidden}
+.screen.active{display:flex}
+
+/* ═══════════════ LOGIN SCREEN ═══════════════ */
+#loginScreen{
+  background:linear-gradient(135deg,#2a1a1e 0%,#4a2030 40%,#7a3850 70%,#c8748c 100%);
+  align-items:center;justify-content:center;flex-direction:column;
+  position:relative;overflow:hidden;
+}
+#loginScreen::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at 20% 50%,rgba(232,160,180,0.15) 0%,transparent 60%),
+             radial-gradient(ellipse at 80% 20%,rgba(201,169,110,0.10) 0%,transparent 50%);
+}
+.login-blob{
+  position:absolute;width:400px;height:400px;border-radius:50%;
+  background:rgba(232,160,180,0.07);
+  animation:pulse 6s ease-in-out infinite;
+}
+.login-blob:nth-child(2){width:250px;height:250px;top:10%;right:5%;animation-delay:2s}
+.login-blob:nth-child(3){width:180px;height:180px;bottom:15%;left:10%;animation-delay:4s}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+
+.login-card{
+  position:relative;z-index:2;
+  background:rgba(253,248,245,0.96);
+  border-radius:24px;padding:48px 44px;
+  width:min(420px,92vw);
+  box-shadow:0 24px 80px rgba(0,0,0,0.4);
+  animation:slideUp 0.6s cubic-bezier(0.16,1,0.3,1);
+}
+@keyframes slideUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+
+.login-logo{font-family:var(--font-display);font-size:42px;font-weight:300;color:var(--rose-dark);letter-spacing:2px;text-align:center;line-height:1}
+.login-tagline{text-align:center;font-size:11px;color:var(--ink-light);letter-spacing:2px;text-transform:uppercase;margin-top:4px;margin-bottom:32px}
+.login-tabs{display:flex;gap:0;border:1px solid var(--ink-faint);border-radius:8px;overflow:hidden;margin-bottom:24px}
+.login-tab{flex:1;padding:8px;text-align:center;font-size:12px;font-weight:500;cursor:pointer;transition:all 0.2s;color:var(--ink-mid);background:white}
+.login-tab.active{background:var(--rose-dark);color:white}
+.form-group{margin-bottom:16px}
+.form-label{font-size:11px;font-weight:500;color:var(--ink-mid);letter-spacing:0.5px;text-transform:uppercase;margin-bottom:5px;display:block}
+.form-input{width:100%;padding:11px 14px;border:1.5px solid var(--ink-faint);border-radius:10px;font-size:13px;font-family:var(--font-body);color:var(--ink);background:white;transition:all 0.2s;outline:none}
+.form-input:focus{border-color:var(--rose-deep);background:var(--rose-pale)}
+.btn-primary{width:100%;padding:13px;background:linear-gradient(135deg,var(--rose-dark),var(--rose-deep));color:white;border:none;border-radius:10px;font-size:14px;font-weight:600;font-family:var(--font-body);cursor:pointer;transition:all 0.2s;letter-spacing:0.5px;margin-top:4px}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(200,116,140,0.4)}
+.login-error{color:#c0392b;font-size:11px;text-align:center;margin-top:8px;min-height:16px}
+.login-hint{font-size:10px;color:var(--ink-light);text-align:center;margin-top:12px}
+
+/* ═══════════════ APP SHELL ═══════════════ */
+#appScreen{flex-direction:row}
+
+/* SIDEBAR */
+.sidebar{
+  width:220px;flex-shrink:0;
+  background:linear-gradient(180deg,#2a1a1e 0%,#3d2028 100%);
+  display:flex;flex-direction:column;
+  padding:0;overflow:hidden;
+}
+.sidebar-logo{padding:28px 20px 20px;border-bottom:1px solid rgba(232,160,180,0.15)}
+.sidebar-logo-text{font-family:var(--font-display);font-size:28px;font-weight:300;color:var(--rose-mid);letter-spacing:2px}
+.sidebar-user{font-size:11px;color:var(--ink-light);margin-top:3px}
+.sidebar-user span{color:var(--rose);font-weight:500}
+
+.sidebar-nav{padding:16px 12px;flex:1;overflow-y:auto}
+.nav-section-label{font-size:9px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:rgba(232,160,180,0.4);padding:10px 8px 4px}
+.nav-item{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 12px;border-radius:10px;cursor:pointer;
+  color:rgba(253,248,245,0.65);font-size:12px;font-weight:400;
+  transition:all 0.2s;margin-bottom:2px;
+}
+.nav-item:hover{background:rgba(232,160,180,0.12);color:var(--rose-mid)}
+.nav-item.active{background:rgba(232,160,180,0.18);color:var(--rose-mid);font-weight:500}
+.nav-item .icon{font-size:15px;width:20px;text-align:center;flex-shrink:0}
+.nav-sub{padding-left:10px}
+.nav-sub .nav-item{font-size:11px;padding:6px 10px}
+
+.sidebar-bottom{padding:14px 12px;border-top:1px solid rgba(232,160,180,0.12)}
+.logout-btn{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:8px;cursor:pointer;color:rgba(253,248,245,0.45);font-size:11px;transition:all 0.2s;width:100%;background:none;border:none;font-family:var(--font-body)}
+.logout-btn:hover{color:var(--rose);background:rgba(232,160,180,0.1)}
+
+/* MAIN CONTENT */
+.main-area{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--cream)}
+.topbar{
+  background:white;border-bottom:1px solid var(--ink-faint);
+  padding:14px 28px;display:flex;align-items:center;gap:16px;
+  flex-shrink:0;
+}
+.topbar-title{font-family:var(--font-display);font-size:22px;font-weight:400;color:var(--ink);flex:1}
+.topbar-date{font-size:11px;color:var(--ink-light);background:var(--rose-pale);padding:4px 10px;border-radius:20px}
+.content{flex:1;overflow-y:auto;padding:28px}
+
+/* ═══════════════ TAB PAGES ═══════════════ */
+.page{display:none}
+.page.active{display:block}
+
+/* ═══════════════ HOME / DASHBOARD ═══════════════ */
+.greeting{font-family:var(--font-display);font-size:36px;font-weight:300;color:var(--ink);margin-bottom:4px}
+.greeting em{color:var(--rose-dark);font-style:italic}
+.greeting-sub{font-size:12px;color:var(--ink-light);margin-bottom:28px}
+
+.dash-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;margin-bottom:24px}
+.dash-card{
+  background:white;border-radius:16px;padding:20px;
+  box-shadow:var(--shadow);cursor:pointer;transition:all 0.25s;
+  border:1.5px solid transparent;
+}
+.dash-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg);border-color:var(--rose-mid)}
+.dash-card-icon{font-size:26px;margin-bottom:8px}
+.dash-card-label{font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--ink-light);margin-bottom:4px}
+.dash-card-value{font-family:var(--font-display);font-size:28px;font-weight:400;color:var(--ink)}
+.dash-card-sub{font-size:10px;color:var(--ink-light);margin-top:2px}
+.dash-card.rose-card{background:linear-gradient(135deg,var(--rose-light),var(--rose-pale));border-color:var(--rose-mid)}
+.dash-card.sage-card{background:linear-gradient(135deg,var(--sage-light),#f0f8f4);border-color:var(--sage)}
+.dash-card.gold-card{background:linear-gradient(135deg,var(--gold-light),#fdf8ee);border-color:var(--gold)}
+
+.quote-card{
+  background:linear-gradient(135deg,#2a1a1e,#4a2030);
+  border-radius:16px;padding:24px 28px;color:white;margin-bottom:24px;
+  position:relative;overflow:hidden;
+}
+.quote-card::before{content:'\201C';position:absolute;top:-10px;left:16px;font-family:var(--font-display);font-size:120px;color:rgba(232,160,180,0.15);line-height:1}
+.quote-text{font-family:var(--font-display);font-size:18px;font-style:italic;font-weight:300;position:relative;z-index:1;line-height:1.5}
+.quote-author{font-size:11px;color:rgba(232,160,180,0.7);margin-top:8px;position:relative;z-index:1}
+
+/* ═══════════════ RING / DONUT ═══════════════ */
+.ring-container{display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ring-label{font-size:11px;color:var(--ink-light);margin-top:6px;text-align:center}
+
+/* ═══════════════ TRACKER PAGES ═══════════════ */
+.tracker-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px}
+.tracker-title{font-family:var(--font-display);font-size:30px;font-weight:400;color:var(--ink)}
+.tracker-subtitle{font-size:11px;color:var(--ink-light);margin-top:2px}
+.section-card{background:white;border-radius:16px;padding:20px;box-shadow:var(--shadow);margin-bottom:16px}
+.section-title{font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--ink-light);margin-bottom:14px;display:flex;align-items:center;gap:6px}
+.section-title::after{content:'';flex:1;height:1px;background:var(--ink-faint)}
+
+/* HABIT GRID */
+.habit-grid-header{display:grid;font-size:9px;color:var(--ink-light);font-weight:600;text-align:center;margin-bottom:4px}
+.habit-row{display:grid;align-items:center;margin-bottom:6px;gap:2px}
+.habit-name-cell{font-size:11px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:text;padding:2px 4px;border-radius:4px}
+.habit-name-cell:hover{background:var(--rose-pale)}
+.habit-name-cell:focus{outline:none;background:var(--rose-pale);box-shadow:0 0 0 1px var(--rose-deep)}
+.hbox{
+  width:22px;height:22px;border:1.5px solid var(--ink-faint);border-radius:5px;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  font-size:11px;color:transparent;transition:all 0.15s;background:white;margin:0 auto;
+}
+.hbox:hover{border-color:var(--rose-deep);background:var(--rose-pale)}
+.hbox.on{background:var(--rose-mid);border-color:var(--rose-deep);color:var(--rose-dark)}
+.hab-pct{font-size:10px;color:var(--ink-mid);text-align:right;padding-right:4px}
+.hab-bar{height:5px;background:var(--ink-faint);border-radius:3px;overflow:hidden;margin:2px 0}
+.hab-bar-fill{height:100%;background:var(--rose-deep);border-radius:3px;transition:width 0.3s}
+.add-row{display:flex;gap:6px;margin-top:8px}
+.add-input{flex:1;border:1.5px dashed var(--rose-mid);border-radius:8px;padding:6px 10px;font-size:11px;font-family:var(--font-body);color:var(--ink);background:white;outline:none}
+.add-input:focus{border-color:var(--rose-deep);background:var(--rose-pale)}
+.add-btn{background:var(--rose-mid);border:none;border-radius:8px;padding:6px 14px;font-size:11px;cursor:pointer;font-family:var(--font-body);color:var(--ink);font-weight:500;transition:all 0.15s}
+.add-btn:hover{background:var(--rose-deep);color:white}
+.del-btn{background:none;border:none;cursor:pointer;color:var(--ink-faint);font-size:11px;padding:2px 4px;transition:color 0.15s}
+.del-btn:hover{color:#c0392b}
+
+/* TASK LIST */
+.task-row{display:flex;align-items:flex-start;gap:8px;padding:5px 0;border-bottom:1px solid var(--ink-faint)}
+.task-row:last-child{border-bottom:none}
+.task-cb{width:16px;height:16px;border:1.5px solid var(--rose-mid);border-radius:4px;flex-shrink:0;margin-top:1px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:10px;color:transparent;transition:all 0.15s;background:white}
+.task-cb.on{background:var(--rose-mid);color:var(--rose-dark)}
+.task-text{flex:1;font-size:12px;color:var(--ink);cursor:text;padding:1px 4px;border-radius:3px;min-height:18px}
+.task-text:hover{background:var(--rose-pale)}
+.task-text:focus{outline:none;background:var(--rose-pale)}
+.task-text.done{text-decoration:line-through;color:var(--ink-light)}
+
+/* PROGRESS RING SVG */
+.rings-row{display:flex;gap:20px;flex-wrap:wrap;align-items:center;justify-content:center;padding:8px 0}
+
+/* YEAR GRID */
+.year-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:8px;margin-bottom:12px}
+.month-block{background:var(--rose-pale);border-radius:10px;padding:8px 6px;text-align:center;cursor:pointer;transition:all 0.2s;border:1.5px solid transparent}
+.month-block:hover{border-color:var(--rose-deep);background:var(--rose-light)}
+.month-block.has-data{border-color:var(--rose-mid)}
+.month-name{font-size:9px;font-weight:600;color:var(--ink-mid);text-transform:uppercase;letter-spacing:0.5px}
+.month-pct{font-size:16px;font-weight:600;color:var(--rose-dark);font-family:var(--font-display);margin-top:2px}
+.month-bar{height:4px;background:var(--ink-faint);border-radius:2px;margin-top:4px;overflow:hidden}
+.month-bar-fill{height:100%;background:var(--rose-deep);border-radius:2px;transition:width 0.4s}
+
+/* JOURNAL */
+.journal-tabs{display:flex;gap:6px;margin-bottom:18px}
+.jtab{padding:7px 16px;border-radius:20px;border:1.5px solid var(--ink-faint);cursor:pointer;font-size:12px;color:var(--ink-mid);transition:all 0.2s;background:white}
+.jtab:hover{border-color:var(--rose-mid);color:var(--rose-dark)}
+.jtab.active{background:var(--rose-dark);color:white;border-color:var(--rose-dark)}
+.journal-entry-list{margin-bottom:16px;max-height:300px;overflow-y:auto}
+.journal-entry{background:white;border-radius:12px;padding:14px 16px;margin-bottom:8px;box-shadow:var(--shadow);cursor:pointer;transition:all 0.2s;border:1.5px solid transparent}
+.journal-entry:hover{border-color:var(--rose-mid);transform:translateX(4px)}
+.journal-entry-date{font-size:10px;color:var(--ink-light);margin-bottom:4px}
+.journal-entry-preview{font-size:12px;color:var(--ink);line-height:1.4;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.journal-entry-mood{float:right;font-size:16px}
+.new-entry-card{background:white;border-radius:16px;padding:20px;box-shadow:var(--shadow)}
+.new-entry-top{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.entry-date-label{font-size:11px;color:var(--ink-light)}
+.mood-picker{display:flex;gap:6px}
+.mood-btn{width:28px;height:28px;border-radius:50%;border:1.5px solid var(--ink-faint);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;transition:all 0.15s;background:white}
+.mood-btn:hover,.mood-btn.active{border-color:var(--rose-deep);background:var(--rose-pale);transform:scale(1.15)}
+.journal-textarea{width:100%;min-height:140px;border:1.5px solid var(--ink-faint);border-radius:10px;padding:12px 14px;font-size:13px;font-family:var(--font-body);color:var(--ink);resize:vertical;line-height:1.6;outline:none;transition:border 0.2s}
+.journal-textarea:focus{border-color:var(--rose-deep);background:var(--rose-pale)}
+.entry-actions{display:flex;gap:8px;margin-top:10px;justify-content:flex-end}
+.btn-save{background:var(--rose-dark);color:white;border:none;border-radius:8px;padding:8px 20px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font-body);transition:all 0.2s}
+.btn-save:hover{background:var(--rose-deep);transform:translateY(-1px)}
+.btn-secondary{background:white;color:var(--ink-mid);border:1.5px solid var(--ink-faint);border-radius:8px;padding:8px 16px;font-size:12px;cursor:pointer;font-family:var(--font-body);transition:all 0.2s}
+.btn-secondary:hover{border-color:var(--rose-mid);color:var(--rose-dark)}
+
+/* PROMPTS */
+.prompt-chip{display:inline-block;background:var(--gold-light);color:var(--ink-mid);border-radius:20px;padding:4px 12px;font-size:11px;margin:3px;cursor:pointer;transition:all 0.15s;border:1px solid var(--gold)}
+.prompt-chip:hover{background:var(--gold);color:var(--ink)}
+
+/* WEEKLY PLANNER EMBED */
+.week-cols{display:flex;gap:8px;overflow-x:auto;padding-bottom:8px}
+.week-col{min-width:130px;background:white;border-radius:12px;overflow:hidden;box-shadow:var(--shadow);flex-shrink:0}
+.week-col-head{background:var(--rose-mid);text-align:center;padding:8px 4px}
+.week-col-day{font-size:12px;font-weight:700;color:var(--ink)}
+.week-col-date{font-size:9px;color:var(--ink-mid);margin-top:1px}
+.week-col-body{padding:8px 6px}
+.week-tasks-head{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--ink-light);margin-bottom:6px;text-align:center;background:var(--rose-light);padding:2px;border-radius:4px}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--ink);color:white;padding:10px 18px;border-radius:10px;font-size:12px;opacity:0;transition:opacity 0.3s;pointer-events:none;z-index:9999;box-shadow:var(--shadow-lg)}
+.toast.show{opacity:1}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--rose-pale)}
+::-webkit-scrollbar-thumb{background:var(--rose-mid);border-radius:3px}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  .sidebar{width:56px}
+  .sidebar-logo-text,.sidebar-user,.nav-section-label,.nav-item span,.logout-btn span{display:none}
+  .nav-item{justify-content:center;padding:12px}
+  .content{padding:16px}
+}
+
+.fade-in{animation:fadeIn 0.35s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+
+<!-- ══════════ LOGIN SCREEN ══════════ -->
+<div class="screen active" id="loginScreen">
+  <div class="login-blob"></div>
+  <div class="login-blob"></div>
+  <div class="login-blob"></div>
+  <div class="login-card">
+    <div class="login-logo">bloom</div>
+    <div class="login-tagline">your personal life planner</div>
+    <div class="login-tabs">
+      <div class="login-tab active" onclick="switchAuthTab('login')">Sign In</div>
+      <div class="login-tab" onclick="switchAuthTab('signup')">Create Account</div>
+    </div>
+    <div id="loginForm">
+      <div class="form-group">
+        <label class="form-label">Username</label>
+        <input class="form-input" id="loginUser" placeholder="your username" autocomplete="username">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input class="form-input" id="loginPass" type="password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+      </div>
+      <button class="btn-primary" onclick="doLogin()">Sign In →</button>
+      <div class="login-hint">Demo: use any username + password to create account on first try</div>
+    </div>
+    <div id="signupForm" style="display:none">
+      <div class="form-group">
+        <label class="form-label">Your Name</label>
+        <input class="form-input" id="signupName" placeholder="e.g. Sofia">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Username</label>
+        <input class="form-input" id="signupUser" placeholder="choose a username">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input class="form-input" id="signupPass" type="password" placeholder="min 4 characters" onkeydown="if(event.key==='Enter')doSignup()">
+      </div>
+      <button class="btn-primary" onclick="doSignup()">Create Account →</button>
+    </div>
+    <div class="login-error" id="authError"></div>
+  </div>
+</div>
+
+<!-- ══════════ APP SCREEN ══════════ -->
+<div class="screen" id="appScreen">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-text">bloom</div>
+      <div class="sidebar-user">Hello, <span id="sidebarName">friend</span></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <div class="nav-item active" onclick="goTo('home')" id="nav-home"><span class="icon">🏠</span><span>Dashboard</span></div>
+
+      <div class="nav-section-label">Trackers</div>
+      <div class="nav-item" onclick="goTo('weekly')" id="nav-weekly"><span class="icon">📅</span><span>Weekly</span></div>
+      <div class="nav-item" onclick="goTo('monthly')" id="nav-monthly"><span class="icon">📆</span><span>Monthly</span></div>
+      <div class="nav-item" onclick="goTo('yearly')" id="nav-yearly"><span class="icon">🗓</span><span>Yearly</span></div>
+
+      <div class="nav-section-label">Journal</div>
+      <div class="nav-item" onclick="goTo('journal-regular')" id="nav-journal-regular"><span class="icon">📓</span><span>Journal</span></div>
+      <div class="nav-item" onclick="goTo('journal-gratitude')" id="nav-journal-gratitude"><span class="icon">🌸</span><span>Gratitude</span></div>
+      <div class="nav-item" onclick="goTo('journal-dreams')" id="nav-journal-dreams"><span class="icon">🌙</span><span>Dreams</span></div>
+    </nav>
+    <div class="sidebar-bottom">
+      <button class="logout-btn" onclick="doLogout()">🚪 <span>Sign Out</span></button>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main-area">
+    <div class="topbar">
+      <div class="topbar-title" id="topbarTitle">Dashboard</div>
+      <div class="topbar-date" id="topbarDate"></div>
+    </div>
+    <div class="content" id="mainContent"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ════════════════════════════════════════════
+// STORAGE HELPERS
+// ════════════════════════════════════════════
+const KEY = (u,k) => `bloom_${u}_${k}`;
+function load(u,k,def){try{const v=localStorage.getItem(KEY(u,k));return v!==null?JSON.parse(v):def}catch{return def}}
+function save(u,k,v){try{localStorage.setItem(KEY(u,k),JSON.stringify(v))}catch{}}
+
+// ════════════════════════════════════════════
+// AUTH
+// ════════════════════════════════════════════
+let currentUser = null;
+
+function switchAuthTab(tab){
+  document.querySelectorAll('.login-tab').forEach((t,i)=>t.classList.toggle('active',i===(tab==='login'?0:1)));
+  document.getElementById('loginForm').style.display = tab==='login'?'block':'none';
+  document.getElementById('signupForm').style.display = tab==='signup'?'block':'none';
+  document.getElementById('authError').textContent='';
+}
+
+function doLogin(){
+  const u=document.getElementById('loginUser').value.trim();
+  const p=document.getElementById('loginPass').value;
+  if(!u||!p){document.getElementById('authError').textContent='Please fill in all fields.';return}
+  const users=JSON.parse(localStorage.getItem('bloom_users')||'{}');
+  if(!users[u]){document.getElementById('authError').textContent='Account not found. Create one first.';return}
+  if(users[u].password!==btoa(p)){document.getElementById('authError').textContent='Incorrect password.';return}
+  loginUser(u,users[u].name);
+}
+
+function doSignup(){
+  const name=document.getElementById('signupName').value.trim();
+  const u=document.getElementById('signupUser').value.trim();
+  const p=document.getElementById('signupPass').value;
+  if(!name||!u||!p){document.getElementById('authError').textContent='Please fill in all fields.';return}
+  if(p.length<4){document.getElementById('authError').textContent='Password must be at least 4 characters.';return}
+  const users=JSON.parse(localStorage.getItem('bloom_users')||'{}');
+  if(users[u]){document.getElementById('authError').textContent='Username already taken.';return}
+  users[u]={name,password:btoa(p)};
+  localStorage.setItem('bloom_users',JSON.stringify(users));
+  loginUser(u,name);
+}
+
+function loginUser(u,name){
+  currentUser=u;
+  document.getElementById('sidebarName').textContent=name.split(' ')[0];
+  document.getElementById('loginScreen').classList.remove('active');
+  document.getElementById('appScreen').classList.add('active');
+  updateTopbarDate();
+  goTo('home');
+}
+
+function doLogout(){
+  currentUser=null;
+  document.getElementById('appScreen').classList.remove('active');
+  document.getElementById('loginScreen').classList.add('active');
+  document.getElementById('loginUser').value='';
+  document.getElementById('loginPass').value='';
+  document.getElementById('authError').textContent='';
+}
+
+// Auto login if session saved
+(function(){
+  const s=sessionStorage.getItem('bloom_session');
+  if(s){try{const{u,name}=JSON.parse(s);loginUser(u,name)}catch{}}
+})();
+
+// ════════════════════════════════════════════
+// NAVIGATION
+// ════════════════════════════════════════════
+let currentPage='home';
+const PAGE_TITLES={home:'Dashboard',weekly:'Weekly Planner',monthly:'Monthly Tracker',yearly:'Yearly Overview','journal-regular':'Journal','journal-gratitude':'Gratitude Journal','journal-dreams':'Dream Journal'};
+
+function goTo(page){
+  currentPage=page;
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const ni=document.getElementById('nav-'+page);
+  if(ni)ni.classList.add('active');
+  document.getElementById('topbarTitle').textContent=PAGE_TITLES[page]||page;
+  const mc=document.getElementById('mainContent');
+  mc.innerHTML='';
+  mc.classList.remove('fade-in');
+  void mc.offsetWidth;
+  mc.classList.add('fade-in');
+  const renders={home:renderHome,weekly:renderWeekly,monthly:renderMonthly,yearly:renderYearly,'journal-regular':()=>renderJournal('regular'),'journal-gratitude':()=>renderJournal('gratitude'),'journal-dreams':()=>renderJournal('dreams')};
+  if(renders[page])renders[page]();
+  sessionStorage.setItem('bloom_session',JSON.stringify({u:currentUser,name:document.getElementById('sidebarName').textContent}));
+}
+
+function updateTopbarDate(){
+  const d=new Date();
+  document.getElementById('topbarDate').textContent=d.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+}
+
+// ════════════════════════════════════════════
+// TOAST
+// ════════════════════════════════════════════
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200)}
+
+// ════════════════════════════════════════════
+// SVG RING
+// ════════════════════════════════════════════
+function ring(pct,size,stroke,color,label){
+  const r=size/2-stroke;const circ=2*Math.PI*r;const off=circ-(pct/100)*circ;
+  return `<div class="ring-container"><svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+    <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="#f0d0d8" stroke-width="${stroke}"/>
+    <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="${color||'#e8a0b4'}" stroke-width="${stroke}"
+      stroke-dasharray="${circ.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}" stroke-linecap="round" transform="rotate(-90 ${size/2} ${size/2})"/>
+    <text x="${size/2}" y="${size/2+5}" text-anchor="middle" font-size="${size>80?16:12}" font-weight="600" fill="#5a3a42" font-family="DM Sans,sans-serif">${pct}%</text>
+  </svg><div class="ring-label">${label||''}</div></div>`;
+}
+
+// ════════════════════════════════════════════
+// HOME
+// ════════════════════════════════════════════
+const QUOTES=[
+  {text:"The secret of getting ahead is getting started.",author:"Mark Twain"},
+  {text:"Small daily improvements are the key to staggering long-term results.",author:"Robin Sharma"},
+  {text:"You don't have to be great to start, but you have to start to be great.",author:"Zig Ziglar"},
+  {text:"Progress, not perfection.",author:"Unknown"},
+  {text:"Discipline is choosing between what you want now and what you want most.",author:"Abraham Lincoln"},
+];
+
+function renderHome(){
+  const wh=load(currentUser,'weeklyHabits',getDefaultHabits());
+  const wt=load(currentUser,'weeklyTasks',getDefaultTasks());
+  const mh=load(currentUser,'monthlyHabits',getDefaultMonthlyHabits());
+  const je=load(currentUser,'journal_regular',[]);
+  const jg=load(currentUser,'journal_gratitude',[]);
+  const jd=load(currentUser,'journal_dreams',[]);
+  const totalJournal=je.length+jg.length+jd.length;
+
+  // weekly habit completion
+  const whDone=wh.reduce((s,h)=>s+h.checks.filter(Boolean).length,0);
+  const whTotal=wh.length*7;
+  const whPct=whTotal>0?Math.round(whDone/whTotal*100):0;
+
+  // weekly task completion
+  const allTasks=Object.values(wt).flat();
+  const atDone=allTasks.filter(t=>t.done).length;
+  const atPct=allTasks.length>0?Math.round(atDone/allTasks.length*100):0;
+
+  const q=QUOTES[new Date().getDay()%QUOTES.length];
+  const userName=document.getElementById('sidebarName').textContent;
+  const hr=new Date().getHours();
+  const greet=hr<12?'Good morning':hr<17?'Good afternoon':'Good evening';
+
+  document.getElementById('mainContent').innerHTML=`
+    <div class="greeting">
+      <em>${greet}</em>, ${userName} ✨
+    </div>
+    <div class="greeting-sub">Here's your life at a glance. Keep going — you're doing amazing.</div>
+
+    <div class="quote-card">
+      <div class="quote-text">${q.text}</div>
+      <div class="quote-author">— ${q.author}</div>
+    </div>
+
+    <div class="dash-grid">
+      <div class="dash-card rose-card" onclick="goTo('weekly')">
+        <div class="dash-card-icon">📅</div>
+        <div class="dash-card-label">Weekly Habits</div>
+        <div class="dash-card-value">${whPct}%</div>
+        <div class="dash-card-sub">${whDone} / ${whTotal} checks done</div>
+      </div>
+      <div class="dash-card sage-card" onclick="goTo('weekly')">
+        <div class="dash-card-icon">✅</div>
+        <div class="dash-card-label">Weekly Tasks</div>
+        <div class="dash-card-value">${atPct}%</div>
+        <div class="dash-card-sub">${atDone} / ${allTasks.length} tasks done</div>
+      </div>
+      <div class="dash-card gold-card" onclick="goTo('monthly')">
+        <div class="dash-card-icon">📆</div>
+        <div class="dash-card-label">Monthly Habits</div>
+        <div class="dash-card-value">${calcMonthlyPct(mh)}%</div>
+        <div class="dash-card-sub">This month's progress</div>
+      </div>
+      <div class="dash-card" onclick="goTo('journal-regular')">
+        <div class="dash-card-icon">📓</div>
+        <div class="dash-card-label">Journal Entries</div>
+        <div class="dash-card-value">${totalJournal}</div>
+        <div class="dash-card-sub">${je.length} journal · ${jg.length} gratitude · ${jd.length} dreams</div>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-title">🌀 This Week at a Glance</div>
+      <div class="rings-row">
+        ${ring(whPct,100,10,'#e8a0b4','Habits')}
+        ${ring(atPct,100,10,'#8fada0','Tasks')}
+        ${ring(calcMonthlyPct(mh),100,10,'#c9a96e','Monthly')}
+      </div>
+    </div>
+  `;
+}
+
+// ════════════════════════════════════════════
+// WEEKLY TRACKER
+// ════════════════════════════════════════════
+const DAYS=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+const SHORT_DAYS=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+
+function getDefaultHabits(){
+  return [
+    {name:'Wake up at 6:30',checks:[0,0,0,0,0,0,0]},
+    {name:'Drink 2L of water',checks:[0,0,0,0,0,0,0]},
+    {name:'Cold shower',checks:[0,0,0,0,0,0,0]},
+    {name:'Gym',checks:[0,0,0,0,0,0,0]},
+    {name:'Reading 10 pages',checks:[0,0,0,0,0,0,0]},
+    {name:'No phone after 10pm',checks:[0,0,0,0,0,0,0]},
+  ];
+}
+
+function getDefaultTasks(){
+  const t={};
+  DAYS.forEach(d=>{t[d]=[]});
+  return t;
+}
+
+function renderWeekly(){
+  const habits=load(currentUser,'weeklyHabits',getDefaultHabits());
+  const tasks=load(currentUser,'weeklyTasks',getDefaultTasks());
+  const meta=load(currentUser,'weeklyMeta',{focus:"This week's priority",reward:'Treat yourself',affirmation:'I am capable of anything I set my mind to.'});
+
+  const totalDone=Object.values(tasks).flat().filter(t=>t.done).length;
+  const totalAll=Object.values(tasks).flat().length;
+  const taskPct=totalAll>0?Math.round(totalDone/totalAll*100):0;
+  const habDone=habits.reduce((s,h)=>s+h.checks.filter(Boolean).length,0);
+  const habTotal=habits.length*7;
+  const habPct=habTotal>0?Math.round(habDone/habTotal*100):0;
+
+  // habit cols: name(140px) + 7 cols(26px each) + pct + del
+  const colTemplate=`140px repeat(7, 26px) 60px 24px`;
+
+  let habitRows=habits.map((h,hi)=>{
+    const done=h.checks.filter(Boolean).length;
+    const pct=Math.round(done/7*100);
+    const boxes=h.checks.map((c,d)=>`<div class="hbox ${c?'on':''}" onclick="toggleWeekHabit(${hi},${d})">${c?'✓':''}</div>`).join('');
+    return `<div class="habit-row" style="display:grid;grid-template-columns:${colTemplate};align-items:center;gap:3px;">
+      <div class="habit-name-cell" contenteditable="true" onblur="renameWeekHabit(${hi},this)">${h.name}</div>
+      ${boxes}
+      <div style="font-size:10px;color:var(--ink-mid);text-align:right;">${pct}%<div class="hab-bar"><div class="hab-bar-fill" style="width:${pct}%"></div></div></div>
+      <button class="del-btn" onclick="delWeekHabit(${hi})">✕</button>
+    </div>`;
+  }).join('');
+
+  let dayCols=DAYS.map((day,di)=>{
+    const dtasks=tasks[day]||[];
+    const taskRows=dtasks.map((t,ti)=>`
+      <div class="task-row">
+        <div class="task-cb ${t.done?'on':''}" onclick="toggleWeekTask('${day}',${ti})">${t.done?'✓':''}</div>
+        <div class="task-text ${t.done?'done':''}" contenteditable="true" onblur="renameWeekTask('${day}',${ti},this)">${t.text}</div>
+        <button class="del-btn" onclick="delWeekTask('${day}',${ti})">✕</button>
+      </div>`).join('');
+    const done=dtasks.filter(t=>t.done).length;
+    const pct=dtasks.length>0?Math.round(done/dtasks.length*100):0;
+    const r=28,circ=+(2*Math.PI*r).toFixed(1),off=+(circ-(pct/100)*circ).toFixed(1);
+    return `<div class="week-col">
+      <div class="week-col-head">
+        <div class="week-col-day">${day}</div>
+        <div class="week-col-date">${getDayDate(di)}</div>
+      </div>
+      <div style="display:flex;justify-content:center;padding:10px 0 4px;">
+        <svg width="62" height="62" viewBox="0 0 62 62">
+          <circle cx="31" cy="31" r="${r}" fill="none" stroke="#fbe8ed" stroke-width="7"/>
+          <circle cx="31" cy="31" r="${r}" fill="none" stroke="#e8a0b4" stroke-width="7"
+            stroke-dasharray="${circ}" stroke-dashoffset="${off}" stroke-linecap="round" transform="rotate(-90 31 31)"/>
+          <text x="31" y="35" text-anchor="middle" font-size="11" font-weight="600" fill="#7a5a62">${pct}%</text>
+        </svg>
+      </div>
+      <div class="week-col-body">
+        <div class="week-tasks-head">Tasks</div>
+        ${taskRows}
+        <div class="add-row" style="margin-top:6px;">
+          <input class="add-input" style="font-size:10px;padding:4px 7px;" placeholder="Add task…" onkeydown="if(event.key==='Enter')addWeekTask('${day}',this)">
+          <button class="add-btn" style="padding:4px 8px;font-size:10px;" onclick="addWeekTask('${day}',this.previousElementSibling)">+</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('mainContent').innerHTML=`
+    <div class="tracker-header">
+      <div>
+        <div class="tracker-title">Weekly Planner</div>
+        <div class="tracker-subtitle">Week of <span contenteditable="true" onblur="saveWeekMeta('weekOf',this)" id="weekOfSpan">${meta.weekOf||'this week'}</span></div>
+      </div>
+      <div class="rings-row" style="gap:14px;">
+        ${ring(habPct,80,8,'#e8a0b4','Habits')}
+        ${ring(taskPct,80,8,'#8fada0','Tasks')}
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px;">
+      <div class="section-card" style="padding:14px">
+        <div style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--ink-light);margin-bottom:4px">Weekly Focus 🎯</div>
+        <div contenteditable="true" onblur="saveWeekMeta('focus',this)" style="font-size:12px;color:var(--ink);min-height:18px;">${meta.focus}</div>
+      </div>
+      <div class="section-card" style="padding:14px">
+        <div style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--ink-light);margin-bottom:4px">Reward 🏆</div>
+        <div contenteditable="true" onblur="saveWeekMeta('reward',this)" style="font-size:12px;color:var(--ink);min-height:18px;">${meta.reward}</div>
+      </div>
+      <div class="section-card" style="padding:14px">
+        <div style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--ink-light);margin-bottom:4px">Affirmation 💌</div>
+        <div contenteditable="true" onblur="saveWeekMeta('affirmation',this)" style="font-size:12px;font-style:italic;color:var(--ink-mid);min-height:18px;">${meta.affirmation}</div>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-title">🌿 Habit Tracker</div>
+      <div style="display:grid;grid-template-columns:${colTemplate};gap:3px;margin-bottom:6px;font-size:9px;font-weight:600;color:var(--ink-light);text-align:center;">
+        <div style="text-align:left;">Habit</div>
+        ${SHORT_DAYS.map(d=>`<div>${d}</div>`).join('')}
+        <div>%</div><div></div>
+      </div>
+      <div id="habitRows">${habitRows}</div>
+      <div class="add-row" style="margin-top:10px;">
+        <input class="add-input" id="newHabitInp" placeholder="New habit…" onkeydown="if(event.key==='Enter')addWeekHabit()">
+        <button class="add-btn" onclick="addWeekHabit()">+ Add</button>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-title">📋 Daily Tasks</div>
+      <div class="week-cols">${dayCols}</div>
+    </div>
+  `;
+}
+
+function getDayDate(di){
+  const now=new Date();
+  const day=now.getDay();
+  const monday=new Date(now);
+  monday.setDate(now.getDate()-(day===0?6:day-1));
+  const d=new Date(monday);d.setDate(monday.getDate()+di);
+  return d.toLocaleDateString('en-GB',{day:'2-digit',month:'2-digit',year:'numeric'});
+}
+
+function toggleWeekHabit(hi,d){
+  const h=load(currentUser,'weeklyHabits',getDefaultHabits());
+  h[hi].checks[d]=h[hi].checks[d]?0:1;
+  save(currentUser,'weeklyHabits',h);renderWeekly();
+}
+function renameWeekHabit(hi,el){
+  const h=load(currentUser,'weeklyHabits',getDefaultHabits());
+  h[hi].name=el.innerText.trim();save(currentUser,'weeklyHabits',h);
+}
+function delWeekHabit(hi){
+  const h=load(currentUser,'weeklyHabits',getDefaultHabits());
+  h.splice(hi,1);save(currentUser,'weeklyHabits',h);renderWeekly();
+}
+function addWeekHabit(){
+  const inp=document.getElementById('newHabitInp');const name=inp.value.trim();if(!name)return;
+  const h=load(currentUser,'weeklyHabits',getDefaultHabits());
+  h.push({name,checks:[0,0,0,0,0,0,0]});save(currentUser,'weeklyHabits',h);inp.value='';renderWeekly();
+}
+function toggleWeekTask(day,ti){
+  const t=load(currentUser,'weeklyTasks',getDefaultTasks());
+  t[day][ti].done=!t[day][ti].done;save(currentUser,'weeklyTasks',t);renderWeekly();
+}
+function renameWeekTask(day,ti,el){
+  const t=load(currentUser,'weeklyTasks',getDefaultTasks());
+  t[day][ti].text=el.innerText.trim();save(currentUser,'weeklyTasks',t);
+}
+function delWeekTask(day,ti){
+  const t=load(currentUser,'weeklyTasks',getDefaultTasks());
+  t[day].splice(ti,1);save(currentUser,'weeklyTasks',t);renderWeekly();
+}
+function addWeekTask(day,inp){
+  const v=inp.value.trim();if(!v)return;
+  const t=load(currentUser,'weeklyTasks',getDefaultTasks());
+  if(!t[day])t[day]=[];
+  t[day].push({text:v,done:false});save(currentUser,'weeklyTasks',t);inp.value='';renderWeekly();
+}
+function saveWeekMeta(field,el){
+  const m=load(currentUser,'weeklyMeta',{});
+  m[field]=el.innerText.trim();save(currentUser,'weeklyMeta',m);
+}
+
+// ════════════════════════════════════════════
+// MONTHLY TRACKER
+// ════════════════════════════════════════════
+const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const currentMonth=new Date().getMonth();
+const daysInMonth=new Date(new Date().getFullYear(),currentMonth+1,0).getDate();
+
+function getDefaultMonthlyHabits(){
+  return [
+    {name:'Set monthly goals',checks:new Array(daysInMonth).fill(0)},
+    {name:'Review last month',checks:new Array(daysInMonth).fill(0)},
+    {name:'Plan the month',checks:new Array(daysInMonth).fill(0)},
+    {name:'Track habits daily',checks:new Array(daysInMonth).fill(0)},
+    {name:'Focus on one big goal',checks:new Array(daysInMonth).fill(0)},
+    {name:'Start one big project',checks:new Array(daysInMonth).fill(0)},
+    {name:'Declutter one area',checks:new Array(daysInMonth).fill(0)},
+    {name:'Deep clean space',checks:new Array(daysInMonth).fill(0)},
+    {name:'Organise digital files',checks:new Array(daysInMonth).fill(0)},
+    {name:'Backup important data',checks:new Array(daysInMonth).fill(0)},
+  ];
+}
+
+function calcMonthlyPct(habits){
+  const done=habits.reduce((s,h)=>s+h.checks.filter(Boolean).length,0);
+  const total=habits.reduce((s,h)=>s+h.checks.length,0);
+  return total>0?Math.round(done/total*100):0;
+}
+
+function renderMonthly(){
+  const habits=load(currentUser,'monthlyHabits',getDefaultMonthlyHabits());
+  const goals=load(currentUser,'monthlyGoals',[{text:'Review finances',done:false},{text:'Save money intentionally',done:false},{text:'Cut one bad habit',done:false},{text:'Build one good habit',done:false},{text:'Read one full book',done:false},{text:'Learn a new concept',done:false},{text:'Practice a skill weekly',done:false},{text:'Do one hard thing',done:false},{text:'Face a fear',done:false},{text:'Take full responsibility',done:false}]);
+  const pct=calcMonthlyPct(habits);
+
+  // show just weeks for monthly view (condensed: week columns)
+  const weeks=[];
+  for(let w=0;w<Math.ceil(daysInMonth/7);w++){
+    const start=w*7+1,end=Math.min((w+1)*7,daysInMonth);
+    weeks.push({start,end});
+  }
+
+  let habitRows=habits.map((h,hi)=>{
+    const done=h.checks.filter(Boolean).length;
+    const p=Math.round(done/daysInMonth*100);
+    // show week totals
+    const weekCells=weeks.map(({start,end})=>{
+      const weekDone=h.checks.slice(start-1,end).filter(Boolean).length;
+      const weekTotal=end-start+1;
+      const wp=Math.round(weekDone/weekTotal*100);
+      return `<div style="text-align:center;cursor:pointer;font-size:10px;color:${wp>=70?'var(--rose-dark)':'var(--ink-light)'};" onclick="toggleMonthWeek(${hi},${start-1},${end-1})">${weekDone}/${weekTotal}</div>`;
+    }).join('');
+    return `<div style="display:grid;grid-template-columns:160px repeat(${weeks.length},60px) 50px 24px;gap:4px;align-items:center;margin-bottom:6px;padding:4px 0;border-bottom:1px solid var(--ink-faint);">
+      <div class="habit-name-cell" contenteditable="true" onblur="renameMonthHabit(${hi},this)">${h.name}</div>
+      ${weekCells}
+      <div style="font-size:10px;color:var(--ink-mid);text-align:right;">${p}%<div class="hab-bar"><div class="hab-bar-fill" style="width:${p}%"></div></div></div>
+      <button class="del-btn" onclick="delMonthHabit(${hi})">✕</button>
+    </div>`;
+  }).join('');
+
+  let goalRows=goals.map((g,gi)=>`
+    <div class="task-row">
+      <div class="task-cb ${g.done?'on':''}" onclick="toggleMonthGoal(${gi})">${g.done?'✓':''}</div>
+      <div class="task-text ${g.done?'done':''}" contenteditable="true" onblur="renameMonthGoal(${gi},this)">${g.text}</div>
+      <button class="del-btn" onclick="delMonthGoal(${gi})">✕</button>
+    </div>`).join('');
+
+  const weekHeaders=weeks.map(({start,end})=>`<div style="text-align:center;font-size:9px;font-weight:600;color:var(--ink-light);">Wk ${start}-${end}</div>`).join('');
+
+  document.getElementById('mainContent').innerHTML=`
+    <div class="tracker-header">
+      <div>
+        <div class="tracker-title">${MONTHS[currentMonth]} ${new Date().getFullYear()}</div>
+        <div class="tracker-subtitle">Monthly Habit & Goal Tracker</div>
+      </div>
+      ${ring(pct,100,10,'#c9a96e','This Month')}
+    </div>
+
+    <div class="section-card">
+      <div class="section-title">🌿 Monthly Habits</div>
+      <div style="display:grid;grid-template-columns:160px repeat(${weeks.length},60px) 50px 24px;gap:4px;margin-bottom:8px;padding-bottom:4px;border-bottom:2px solid var(--ink-faint);">
+        <div style="font-size:9px;font-weight:600;color:var(--ink-light);">Habit</div>
+        ${weekHeaders}
+        <div style="font-size:9px;font-weight:600;color:var(--ink-light);text-align:right;">Progress</div>
+        <div></div>
+      </div>
+      <div id="monthHabitRows">${habitRows}</div>
+      <div class="add-row" style="margin-top:10px;">
+        <input class="add-input" id="newMonthHabit" placeholder="New monthly habit…" onkeydown="if(event.key==='Enter')addMonthHabit()">
+        <button class="add-btn" onclick="addMonthHabit()">+ Add</button>
+      </div>
+      <div style="font-size:10px;color:var(--ink-light);margin-top:8px;">💡 Click week numbers to toggle all days in that week</div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-title">🎯 Monthly Goals</div>
+      <div id="monthGoalRows">${goalRows}</div>
+      <div class="add-row" style="margin-top:10px;">
+        <input class="add-input" id="newMonthGoal" placeholder="New goal…" onkeydown="if(event.key==='Enter')addMonthGoal()">
+        <button class="add-btn" onclick="addMonthGoal()">+ Add</button>
+      </div>
+    </div>
+  `;
+}
+
+function toggleMonthWeek(hi,start,end){
+  const h=load(currentUser,'monthlyHabits',getDefaultMonthlyHabits());
+  const slice=h[hi].checks.slice(start,end+1);
+  const allOn=slice.every(Boolean);
+  for(let i=start;i<=end;i++)h[hi].checks[i]=allOn?0:1;
+  save(currentUser,'monthlyHabits',h);renderMonthly();
+}
+function renameMonthHabit(hi,el){const h=load(currentUser,'monthlyHabits',getDefaultMonthlyHabits());h[hi].name=el.innerText.trim();save(currentUser,'monthlyHabits',h);}
+function delMonthHabit(hi){const h=load(currentUser,'monthlyHabits',getDefaultMonthlyHabits());h.splice(hi,1);save(currentUser,'monthlyHabits',h);renderMonthly();}
+function addMonthHabit(){const inp=document.getElementById('newMonthHabit');const name=inp.value.trim();if(!name)return;const h=load(currentUser,'monthlyHabits',getDefaultMonthlyHabits());h.push({name,checks:new Array(daysInMonth).fill(0)});save(currentUser,'monthlyHabits',h);inp.value='';renderMonthly();}
+function toggleMonthGoal(gi){const g=load(currentUser,'monthlyGoals',[]);g[gi].done=!g[gi].done;save(currentUser,'monthlyGoals',g);renderMonthly();}
+function renameMonthGoal(gi,el){const g=load(currentUser,'monthlyGoals',[]);g[gi].text=el.innerText.trim();save(currentUser,'monthlyGoals',g);}
+function delMonthGoal(gi){const g=load(currentUser,'monthlyGoals',[]);g.splice(gi,1);save(currentUser,'monthlyGoals',g);renderMonthly();}
+function addMonthGoal(){const inp=document.getElementById('newMonthGoal');const v=inp.value.trim();if(!v)return;const g=load(currentUser,'monthlyGoals',[]);g.push({text:v,done:false});save(currentUser,'monthlyGoals',g);inp.value='';renderMonthly();}
+
+// ════════════════════════════════════════════
+// YEARLY TRACKER
+// ════════════════════════════════════════════
+function renderYearly(){
+  const year=new Date().getFullYear();
+  const yearData=load(currentUser,'yearlyData',{});
+  const yearGoals=load(currentUser,'yearlyGoals',[
+    {text:'Read 12 books',done:false},{text:'Save 3 months expenses',done:false},
+    {text:'Run a 5K',done:false},{text:'Learn a new skill',done:false},
+    {text:'Travel to one new place',done:false},{text:'Start a side project',done:false},
+    {text:'Improve sleep routine',done:false},{text:'Reduce screen time',done:false},
+    {text:'Eat cleaner 70% of the time',done:false},{text:'Reflect weekly (50/52 weeks)',done:false},
+    {text:'Help someone deeply',done:false},{text:'Reconnect with someone',done:false},
+  ]);
+
+  // month blocks with colour coding
+  const monthBlocks=MONTHS.map((m,mi)=>{
+    const md=yearData[mi]||{pct:0,note:''};
+    const pct=md.pct||0;
+    const isCurrent=mi===currentMonth;
+    const isFuture=mi>currentMonth;
+    const col=pct>=80?'#e8a0b4':pct>=40?'#f2c4d0':pct>0?'#fbe8ed':'var(--rose-pale)';
+    return `<div class="month-block ${pct>0?'has-data':''} ${isCurrent?'current-month':''}"
+      style="${isCurrent?'border:2px solid var(--rose-dark);':''}${isFuture?'opacity:0.5;':''}"
+      onclick="editYearMonth(${mi})">
+      <div class="month-name">${m.slice(0,3)}</div>
+      <div class="month-pct" style="color:${pct>0?'var(--rose-dark)':'var(--ink-faint)'}">${pct>0?pct+'%':'—'}</div>
+      <div class="month-bar"><div class="month-bar-fill" style="width:${pct}%"></div></div>
+      ${md.note?`<div style="font-size:8px;color:var(--ink-light);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${md.note}</div>`:''}
+    </div>`;
+  }).join('');
+
+  const totalPct=Math.round(MONTHS.reduce((s,m,mi)=>s+(yearData[mi]?.pct||0),0)/12);
+
+  let goalRows=yearGoals.map((g,gi)=>`
+    <div class="task-row">
+      <div class="task-cb ${g.done?'on':''}" onclick="toggleYearGoal(${gi})">${g.done?'✓':''}</div>
+      <div class="task-text ${g.done?'done':''}" contenteditable="true" onblur="renameYearGoal(${gi},this)">${g.text}</div>
+      <button class="del-btn" onclick="delYearGoal(${gi})">✕</button>
+    </div>`).join('');
+
+  document.getElementById('mainContent').innerHTML=`
+    <div class="tracker-header">
+      <div>
+        <div class="tracker-title">${year} — Yearly Overview</div>
+        <div class="tracker-subtitle">Your year at a glance. Click any month to set its progress.</div>
+      </div>
+      ${ring(totalPct,100,10,'#c9a96e','Year Progress')}
+    </div>
+
+    <div class="section-card">
+      <div class="section-title">📅 Monthly Progress</div>
+      <div class="year-grid">${monthBlocks}</div>
+      <div style="font-size:10px;color:var(--ink-light);">💡 Click any month to update its completion % and add a note</div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-title">⭐ Yearly Goals</div>
+      <div id="yearGoalRows">${goalRows}</div>
+      <div class="add-row" style="margin-top:10px;">
+        <input class="add-input" id="newYearGoal" placeholder="New yearly goal…" onkeydown="if(event.key==='Enter')addYearGoal()">
+        <button class="add-btn" onclick="addYearGoal()">+ Add</button>
+      </div>
+    </div>
+
+    <div id="monthEditModal" style="display:none;position:fixed;inset:0;background:rgba(42,26,30,0.5);z-index:100;align-items:center;justify-content:center;">
+      <div style="background:white;border-radius:20px;padding:32px;width:min(360px,90vw);box-shadow:var(--shadow-lg);">
+        <div style="font-family:var(--font-display);font-size:24px;margin-bottom:16px;" id="modalMonthTitle">Month</div>
+        <div class="form-group">
+          <label class="form-label">Completion %</label>
+          <input class="form-input" type="number" min="0" max="100" id="modalPct" placeholder="0–100">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Month note / highlight</label>
+          <input class="form-input" id="modalNote" placeholder="e.g. Focused on fitness">
+        </div>
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px;">
+          <button class="btn-secondary" onclick="closeMonthModal()">Cancel</button>
+          <button class="btn-save" onclick="saveMonthModal()">Save</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+let editingMonth=null;
+function editYearMonth(mi){
+  editingMonth=mi;
+  const yd=load(currentUser,'yearlyData',{});
+  const md=yd[mi]||{pct:0,note:''};
+  document.getElementById('modalMonthTitle').textContent=MONTHS[mi]+' '+new Date().getFullYear();
+  document.getElementById('modalPct').value=md.pct||'';
+  document.getElementById('modalNote').value=md.note||'';
+  document.getElementById('monthEditModal').style.display='flex';
+}
+function closeMonthModal(){document.getElementById('monthEditModal').style.display='none';}
+function saveMonthModal(){
+  const pct=Math.min(100,Math.max(0,parseInt(document.getElementById('modalPct').value)||0));
+  const note=document.getElementById('modalNote').value.trim();
+  const yd=load(currentUser,'yearlyData',{});
+  yd[editingMonth]={pct,note};save(currentUser,'yearlyData',yd);
+  closeMonthModal();renderYearly();toast('Month updated ✓');
+}
+function toggleYearGoal(gi){const g=load(currentUser,'yearlyGoals',[]);g[gi].done=!g[gi].done;save(currentUser,'yearlyGoals',g);renderYearly();}
+function renameYearGoal(gi,el){const g=load(currentUser,'yearlyGoals',[]);g[gi].text=el.innerText.trim();save(currentUser,'yearlyGoals',g);}
+function delYearGoal(gi){const g=load(currentUser,'yearlyGoals',[]);g.splice(gi,1);save(currentUser,'yearlyGoals',g);renderYearly();}
+function addYearGoal(){const inp=document.getElementById('newYearGoal');const v=inp.value.trim();if(!v)return;const g=load(currentUser,'yearlyGoals',[]);g.push({text:v,done:false});save(currentUser,'yearlyGoals',g);inp.value='';renderYearly();}
+
+// ════════════════════════════════════════════
+// JOURNAL
+// ════════════════════════════════════════════
+const JOURNAL_CONFIG={
+  regular:{label:'Journal',icon:'📓',color:'var(--rose-dark)',prompts:['What happened today?','What are you thinking about?','What do you want to remember?','What challenged you today?','What made you smile?']},
+  gratitude:{label:'Gratitude',icon:'🌸',color:'#8fada0',prompts:['3 things I am grateful for today…','Someone who made my day better…','A small moment I appreciated…','Something about my body I am thankful for…','A challenge that taught me something…']},
+  dreams:{label:'Dreams',icon:'🌙',color:'#7a6aaa',prompts:['I dreamed about…','The feeling in my dream was…','Symbols I noticed…','What I think this dream means…','What I want to dream about…']},
+};
+
+function renderJournal(type){
+  const cfg=JOURNAL_CONFIG[type];
+  const entries=load(currentUser,`journal_${type}`,[]);
+  const entryList=entries.slice().reverse().map((e,ri)=>{
+    const i=entries.length-1-ri;
+    return `<div class="journal-entry" onclick="openEntry(${i},'${type}')">
+      <span class="journal-entry-mood">${e.mood||'📝'}</span>
+      <div class="journal-entry-date">${e.date} ${e.time||''}</div>
+      <div class="journal-entry-preview">${e.text||'(empty)'}</div>
+    </div>`;
+  }).join('') || `<div style="color:var(--ink-light);font-size:12px;padding:16px 0;text-align:center;">No entries yet. Write your first one below ✨</div>`;
+
+  const promptChips=cfg.prompts.map(p=>`<span class="prompt-chip" onclick="usePrompt('${p.replace(/'/g,"\\'")}')">${p}</span>`).join('');
+
+  document.getElementById('mainContent').innerHTML=`
+    <div class="tracker-header">
+      <div>
+        <div class="tracker-title">${cfg.icon} ${cfg.label}</div>
+        <div class="tracker-subtitle">${entries.length} ${entries.length===1?'entry':'entries'} total</div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:8px;margin-bottom:16px;">
+      ${Object.keys(JOURNAL_CONFIG).map(t=>`<div class="jtab ${t===type?'active':''}" onclick="goTo('journal-${t}')">${JOURNAL_CONFIG[t].icon} ${JOURNAL_CONFIG[t].label}</div>`).join('')}
+    </div>
+
+    <div class="section-card" style="margin-bottom:16px;">
+      <div class="section-title">${cfg.icon} Past Entries</div>
+      <div class="journal-entry-list">${entryList}</div>
+    </div>
+
+    <div class="new-entry-card">
+      <div style="font-family:var(--font-display);font-size:20px;color:${cfg.color};margin-bottom:12px;">New Entry</div>
+      <div class="new-entry-top">
+        <span class="entry-date-label" id="entryDateLabel">${new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</span>
+        <div class="mood-picker">
+          ${['😊','😌','😔','😤','🥺','😴','🌟','💪'].map(m=>`<div class="mood-btn" onclick="selectMood(this,'${m}')" data-mood="${m}">${m}</div>`).join('')}
+        </div>
+      </div>
+      <div style="margin-bottom:10px;">
+        <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--ink-light);margin-bottom:6px;">✨ Prompts</div>
+        ${promptChips}
+      </div>
+      <textarea class="journal-textarea" id="journalText" placeholder="Start writing…"></textarea>
+      <div class="entry-actions">
+        <button class="btn-secondary" onclick="clearJournalEntry()">Clear</button>
+        <button class="btn-save" onclick="saveJournalEntry('${type}')">Save Entry →</button>
+      </div>
+    </div>
+  `;
+}
+
+let selectedMood='📝';
+function selectMood(el,mood){
+  document.querySelectorAll('.mood-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');selectedMood=mood;
+}
+function usePrompt(p){
+  const ta=document.getElementById('journalText');
+  if(ta)ta.value=(ta.value?ta.value+'\n\n':'')+p+'\n';ta.focus();
+}
+function saveJournalEntry(type){
+  const text=document.getElementById('journalText').value.trim();
+  if(!text){toast('Write something first ✏️');return;}
+  const entries=load(currentUser,`journal_${type}`,[]);
+  const now=new Date();
+  entries.push({text,mood:selectedMood,date:now.toLocaleDateString('en-GB'),time:now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),type});
+  save(currentUser,`journal_${type}`,entries);
+  toast('Entry saved 🌸');selectedMood='📝';
+  renderJournal(type);
+}
+function clearJournalEntry(){const ta=document.getElementById('journalText');if(ta)ta.value='';}
+function openEntry(i,type){
+  const entries=load(currentUser,`journal_${type}`,[]);
+  const e=entries[i];if(!e)return;
+  const modal=document.createElement('div');
+  modal.style.cssText='position:fixed;inset:0;background:rgba(42,26,30,0.6);z-index:200;display:flex;align-items:center;justify-content:center;';
+  modal.innerHTML=`<div style="background:white;border-radius:20px;padding:32px;width:min(520px,92vw);max-height:80vh;overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,0.3);">
+    <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:16px;">
+      <div>
+        <div style="font-family:var(--font-display);font-size:22px;color:var(--ink)">${e.mood} ${e.date}</div>
+        <div style="font-size:11px;color:var(--ink-light)">${e.time||''}</div>
+      </div>
+      <button onclick="this.closest('div[style*=fixed]').remove()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--ink-light)">✕</button>
+    </div>
+    <div style="font-size:14px;line-height:1.8;color:var(--ink);white-space:pre-wrap;">${e.text}</div>
+    <div style="margin-top:20px;display:flex;justify-content:flex-end;gap:8px;">
+      <button class="btn-secondary" onclick="deleteEntry(${i},'${type}',this.closest('div[style*=fixed]'))">Delete Entry</button>
+      <button class="btn-save" onclick="this.closest('div[style*=fixed]').remove()">Close</button>
+    </div>
+  </div>`;
+  document.body.appendChild(modal);
+}
+function deleteEntry(i,type,modal){
+  if(!confirm('Delete this entry?'))return;
+  const entries=load(currentUser,`journal_${type}`,[]);
+  entries.splice(i,1);save(currentUser,`journal_${type}`,entries);
+  modal.remove();renderJournal(type);toast('Entry deleted');
+}
+
+updateTopbarDate();
+</script>
+</body>
+</html>
