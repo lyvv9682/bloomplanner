@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bloom — Your Life Planner</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --rose:#e8a0b4;--rose-mid:#f2c4d0;--rose-light:#fbe8ed;--rose-pale:#fdf4f6;
+  --rose-deep:#c8748c;--rose-dark:#9a3a5a;
+  --sage:#8fada0;--sage-light:#d4e8e0;
+  --gold:#c9a96e;--gold-light:#f0e4cc;
+  --ink:#2a1a1e;--ink-mid:#5a3a42;--ink-light:#9a7a82;--ink-faint:#ecdde0;
+  --white:#ffffff;--cream:#fdf8f5;
+  --font-d:'Cormorant Garamond',Georgia,serif;
+  --font-b:'DM Sans','Helvetica Neue',sans-serif;
+  --sh:0 2px 16px rgba(42,26,30,.08);--sh-lg:0 8px 40px rgba(42,26,30,.14);
+}
+html,body{height:100%;overflow:hidden;font-family:var(--font-b);background:var(--cream);color:var(--ink);font-size:13px}
+
+/* ── SCREENS ── */
+.screen{display:none;height:100vh;overflow:hidden}
+.screen.active{display:flex}
+
+/* ── LOGIN ── */
+#loginScreen{background:linear-gradient(145deg,#1e1014 0%,#3d1c28 45%,#7a3050 75%,#c8748c 100%);align-items:center;justify-content:center;flex-direction:column;position:relative;overflow:hidden}
+.blob{position:absolute;border-radius:50%;animation:bpulse 7s ease-in-out infinite;pointer-events:none}
+.blob:nth-child(1){width:420px;height:420px;top:-80px;left:-80px;background:radial-gradient(circle,rgba(232,160,180,.12),transparent 70%);animation-delay:0s}
+.blob:nth-child(2){width:300px;height:300px;bottom:-60px;right:-60px;background:radial-gradient(circle,rgba(201,169,110,.10),transparent 70%);animation-delay:3s}
+.blob:nth-child(3){width:200px;height:200px;bottom:20%;left:15%;background:radial-gradient(circle,rgba(232,160,180,.08),transparent 70%);animation-delay:5s}
+@keyframes bpulse{0%,100%{transform:scale(1) rotate(0deg)}50%{transform:scale(1.12) rotate(5deg)}}
+.lcard{position:relative;z-index:2;background:rgba(253,248,245,.97);border-radius:28px;padding:44px 40px;width:min(420px,94vw);box-shadow:0 30px 90px rgba(0,0,0,.45);animation:slideUp .6s cubic-bezier(.16,1,.3,1)}
+@keyframes slideUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}
+.llogo{font-family:var(--font-d);font-size:46px;font-weight:300;color:var(--rose-dark);letter-spacing:3px;text-align:center;line-height:1}
+.ltag{text-align:center;font-size:10px;letter-spacing:2.5px;text-transform:uppercase;color:var(--ink-light);margin-top:3px;margin-bottom:28px}
+.ltabs{display:flex;border:1.5px solid var(--ink-faint);border-radius:10px;overflow:hidden;margin-bottom:22px}
+.ltab{flex:1;padding:9px;text-align:center;font-size:12px;font-weight:500;cursor:pointer;transition:all .2s;color:var(--ink-mid);background:white}
+.ltab.active{background:var(--rose-dark);color:white}
+.fg{margin-bottom:14px}
+.fl{display:block;font-size:10px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:var(--ink-mid);margin-bottom:5px}
+.fi{width:100%;padding:11px 14px;border:1.5px solid var(--ink-faint);border-radius:10px;font-size:13px;font-family:var(--font-b);color:var(--ink);background:white;outline:none;transition:all .2s}
+.fi:focus{border-color:var(--rose-deep);background:var(--rose-pale)}
+.pbtn{width:100%;padding:13px;background:linear-gradient(135deg,var(--rose-dark),var(--rose-deep));color:white;border:none;border-radius:10px;font-size:14px;font-weight:600;font-family:var(--font-b);cursor:pointer;transition:all .2s;margin-top:4px}
+.pbtn:hover{transform:translateY(-1px);box-shadow:0 6px 22px rgba(200,116,140,.4)}
+.lerr{color:#c0392b;font-size:11px;text-align:center;margin-top:8px;min-height:16px}
+.lhint{font-size:10px;color:var(--ink-light);text-align:center;margin-top:10px}
+
+/* ── APP SHELL ── */
+#appScreen{flex-direction:row}
+.sidebar{width:224px;flex-shrink:0;background:linear-gradient(180deg,#1e1014 0%,#3d1c28 100%);display:flex;flex-direction:column;overflow:hidden;transition:width .3s}
+.sidebar.collapsed{width:58px}
+.sb-logo{padding:24px 18px 18px;border-bottom:1px solid rgba(232,160,180,.13);display:flex;align-items:center;gap:10px}
+.sb-logo-text{font-family:var(--font-d);font-size:26px;font-weight:300;color:var(--rose-mid);letter-spacing:2px;white-space:nowrap;overflow:hidden;transition:opacity .2s}
+.sidebar.collapsed .sb-logo-text,.sidebar.collapsed .sb-user,.sidebar.collapsed .nav-label,.sidebar.collapsed .nav-text,.sidebar.collapsed .logout-text{opacity:0;width:0;overflow:hidden}
+.sb-user{font-size:11px;color:var(--ink-light);white-space:nowrap;overflow:hidden}
+.sb-user span{color:var(--rose);font-weight:500}
+.sb-toggle{margin-left:auto;background:none;border:none;cursor:pointer;color:rgba(232,160,180,.5);font-size:16px;flex-shrink:0;padding:2px;transition:color .2s}
+.sb-toggle:hover{color:var(--rose-mid)}
+.sb-nav{padding:14px 10px;flex:1;overflow-y:auto}
+.nav-label{font-size:9px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:rgba(232,160,180,.35);padding:10px 8px 4px;white-space:nowrap;overflow:hidden}
+.nav-item{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:10px;cursor:pointer;color:rgba(253,248,245,.6);font-size:12px;font-weight:400;transition:all .2s;margin-bottom:2px;white-space:nowrap}
+.nav-item:hover{background:rgba(232,160,180,.12);color:var(--rose-mid)}
+.nav-item.active{background:rgba(232,160,180,.2);color:var(--rose-mid);font-weight:500}
+.nav-icon{font-size:16px;width:22px;text-align:center;flex-shrink:0}
+.sb-bottom{padding:12px 10px;border-top:1px solid rgba(232,160,180,.1)}
+.logout-btn{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:8px;cursor:pointer;color:rgba(253,248,245,.4);font-size:11px;transition:all .2s;width:100%;background:none;border:none;font-family:var(--font-b)}
+.logout-btn:hover{color:var(--rose);background:rgba(232,160,180,.1)}
+
+.main-area{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.topbar{background:white;border-bottom:1.5px solid var(--ink-faint);padding:12px 24px;display:flex;align-items:center;gap:12px;flex-shrink:0}
+.topbar-title{font-family:var(--font-d);font-size:22px;font-weight:400;flex:1;color:var(--ink)}
+.topbar-date{font-size:11px;color:var(--ink-light);background:var(--rose-pale);padding:4px 12px;border-radius:20px;white-space:nowrap}
+.content{flex:1;overflow-y:auto;padding:24px}
+
+/* ── COMMON ── */
+.page{display:none}.page.active{display:block}
+.fade-in{animation:fadeIn .3s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.sec-card{background:white;border-radius:16px;padding:20px;box-shadow:var(--sh);margin-bottom:16px}
+.sec-title{font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--ink-light);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.sec-title::after{content:'';flex:1;height:1px;background:var(--ink-faint)}
+[contenteditable]{outline:none;cursor:text;border-radius:3px;transition:background .15s}
+[contenteditable]:hover{background:var(--rose-pale)}
+[contenteditable]:focus{background:var(--rose-pale);box-shadow:0 0 0 1.5px var(--rose-deep)}
+.add-row{display:flex;gap:6px;margin-top:8px}
+.add-inp{flex:1;border:1.5px dashed var(--rose-mid);border-radius:8px;padding:7px 10px;font-size:12px;font-family:var(--font-b);color:var(--ink);background:white;outline:none;min-width:0}
+.add-inp:focus{border-color:var(--rose-deep);background:var(--rose-pale)}
+.add-btn{background:var(--rose-mid);border:none;border-radius:8px;padding:7px 14px;font-size:12px;cursor:pointer;font-family:var(--font-b);color:var(--ink);font-weight:500;transition:all .15s;white-space:nowrap}
+.add-btn:hover{background:var(--rose-deep);color:white}
+.del-btn{background:none;border:none;cursor:pointer;color:var(--ink-faint);font-size:11px;padding:2px 4px;transition:color .15s;flex-shrink:0}
+.del-btn:hover{color:#c0392b}
+.btn-save{background:var(--rose-dark);color:white;border:none;border-radius:9px;padding:9px 22px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font-b);transition:all .2s}
+.btn-save:hover{background:var(--rose-deep);transform:translateY(-1px)}
+.btn-sec{background:white;color:var(--ink-mid);border:1.5px solid var(--ink-faint);border-radius:9px;padding:9px 16px;font-size:12px;cursor:pointer;font-family:var(--font-b);transition:all .2s}
+.btn-sec:hover{border-color:var(--rose-mid);color:var(--rose-dark)}
+
+/* ring svg helper */
+.ring-wrap{display:flex;flex-direction:column;align-items:center;gap:4px}
+.ring-lbl{font-size:10px;color:var(--ink-light);text-align:center}
+
+/* ── DASH ── */
+.greeting{font-family:var(--font-d);font-size:34px;font-weight:300;line-height:1.2;margin-bottom:4px}
+.greeting em{color:var(--rose-dark);font-style:italic}
+.dash-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px;margin-bottom:20px}
+.dash-card{background:white;border-radius:16px;padding:18px;box-shadow:var(--sh);cursor:pointer;transition:all .25s;border:1.5px solid transparent}
+.dash-card:hover{transform:translateY(-3px);box-shadow:var(--sh-lg);border-color:var(--rose-mid)}
+.dc-icon{font-size:24px;margin-bottom:6px}
+.dc-lbl{font-size:9px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--ink-light);margin-bottom:3px}
+.dc-val{font-family:var(--font-d);font-size:30px;font-weight:400;color:var(--ink)}
+.dc-sub{font-size:10px;color:var(--ink-light);margin-top:2px}
+.dc-rose{background:linear-gradient(135deg,var(--rose-light),var(--rose-pale));border-color:var(--rose-mid)!important}
+.dc-sage{background:linear-gradient(135deg,var(--sage-light),#f0f8f4);border-color:var(--sage)!important}
+.dc-gold{background:linear-gradient(135deg,var(--gold-light),#fdf8ee);border-color:var(--gold)!important}
+.quote-card{background:linear-gradient(135deg,#1e1014,#3d1c28);border-radius:16px;padding:22px 26px;color:white;margin-bottom:20px;position:relative;overflow:hidden}
+.quote-card::before{content:'\201C';position:absolute;top:-16px;left:14px;font-family:var(--font-d);font-size:110px;color:rgba(232,160,180,.12);line-height:1}
+.qt{font-family:var(--font-d);font-size:17px;font-style:italic;font-weight:300;position:relative;z-index:1;line-height:1.5}
+.qa{font-size:11px;color:rgba(232,160,180,.65);margin-top:7px;position:relative;z-index:1}
+
+/* ── HABITS ── */
+.hab-row{display:grid;align-items:center;gap:3px;margin-bottom:5px;padding:3px 0;border-bottom:1px solid var(--ink-faint)}
+.hab-name{font-size:11px;color:var(--ink);padding:2px 4px;border-radius:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hbox{width:22px;height:22px;border:1.5px solid var(--ink-faint);border-radius:5px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;color:transparent;transition:all .15s;background:white;margin:0 auto;user-select:none}
+.hbox:hover{border-color:var(--rose-deep);background:var(--rose-pale)}
+.hbox.on{background:var(--rose-mid);border-color:var(--rose-deep);color:var(--rose-dark)}
+.hab-pbar{height:5px;background:var(--ink-faint);border-radius:3px;overflow:hidden;margin-top:1px}
+.hab-pfill{height:100%;background:var(--rose-deep);border-radius:3px;transition:width .3s}
+
+/* habit customize modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(30,16,20,.6);z-index:300;display:flex;align-items:center;justify-content:center;animation:fadeIn .2s ease}
+.modal-box{background:white;border-radius:22px;padding:32px;width:min(480px,94vw);max-height:85vh;overflow-y:auto;box-shadow:0 30px 80px rgba(0,0,0,.35)}
+.modal-title{font-family:var(--font-d);font-size:26px;font-weight:400;color:var(--ink);margin-bottom:18px}
+.habit-customize-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--ink-faint)}
+.hab-color-pick{width:24px;height:24px;border-radius:50%;border:2px solid var(--ink-faint);cursor:pointer;flex-shrink:0;transition:transform .15s}
+.hab-color-pick:hover{transform:scale(1.2)}
+.hab-freq-select{border:1.5px solid var(--ink-faint);border-radius:7px;padding:4px 8px;font-size:11px;font-family:var(--font-b);color:var(--ink);background:white;cursor:pointer;outline:none}
+.hab-freq-select:focus{border-color:var(--rose-deep)}
+.color-swatch-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.cswatch{width:22px;height:22px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:all .15s}
+.cswatch:hover,.cswatch.active{transform:scale(1.2);border-color:var(--ink)}
+
+/* ── TASKS ── */
+.task-row{display:flex;align-items:flex-start;gap:7px;padding:5px 0;border-bottom:1px solid var(--ink-faint)}
+.tcb{width:16px;height:16px;border:1.5px solid var(--rose-mid);border-radius:4px;flex-shrink:0;margin-top:1px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:10px;color:transparent;transition:all .15s;background:white}
+.tcb.on{background:var(--rose-mid);color:var(--rose-dark)}
+.ttxt{flex:1;font-size:12px;color:var(--ink);padding:1px 4px;border-radius:3px;min-height:18px;line-height:1.4}
+.ttxt:hover{background:var(--rose-pale)}
+.ttxt:focus{outline:none;background:var(--rose-pale)}
+.ttxt.done{text-decoration:line-through;color:var(--ink-light)}
+
+/* ── WEEK COLS ── */
+.week-cols{display:flex;gap:8px;overflow-x:auto;padding-bottom:8px}
+.wcol{min-width:140px;background:white;border-radius:14px;overflow:hidden;box-shadow:var(--sh);flex-shrink:0;border:1.5px solid transparent;transition:border-color .2s}
+.wcol.today{border-color:var(--rose-deep)}
+.wcol-head{text-align:center;padding:9px 4px}
+.wcol-day{font-size:13px;font-weight:700;color:var(--ink)}
+.wcol-date{font-size:9px;color:var(--ink-mid);margin-top:1px}
+.wcol-body{padding:8px 6px}
+.wtasks-hd{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--ink-light);text-align:center;background:var(--rose-light);padding:2px;border-radius:4px;margin-bottom:5px}
+
+/* ── MONTHLY ── */
+.month-tab-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+.mtab{padding:6px 14px;border-radius:18px;border:1.5px solid var(--ink-faint);cursor:pointer;font-size:11px;color:var(--ink-mid);transition:all .2s;background:white}
+.mtab:hover{border-color:var(--rose-mid);color:var(--rose-dark)}
+.mtab.active{background:var(--rose-dark);color:white;border-color:var(--rose-dark)}
+
+/* ── YEAR GRID ── */
+.yr-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:14px}
+@media(max-width:700px){.yr-grid{grid-template-columns:repeat(3,1fr)}}
+.mblock{background:var(--rose-pale);border-radius:12px;padding:10px 8px;text-align:center;cursor:pointer;transition:all .2s;border:1.5px solid transparent}
+.mblock:hover{border-color:var(--rose-deep);background:var(--rose-light)}
+.mblock.cur{border-color:var(--rose-dark);background:var(--rose-light)}
+.mblock.has{border-color:var(--rose-mid)}
+.mbn{font-size:9px;font-weight:600;color:var(--ink-mid);text-transform:uppercase;letter-spacing:.5px}
+.mbp{font-family:var(--font-d);font-size:18px;font-weight:400;color:var(--rose-dark);margin-top:2px}
+.mb-bar{height:4px;background:var(--ink-faint);border-radius:2px;margin-top:5px;overflow:hidden}
+.mb-bar-fill{height:100%;background:var(--rose-deep);border-radius:2px;transition:width .4s}
+
+/* ── JOURNAL ── */
+.jtabs{display:flex;gap:7px;margin-bottom:18px;flex-wrap:wrap}
+.jtab{padding:7px 16px;border-radius:20px;border:1.5px solid var(--ink-faint);cursor:pointer;font-size:12px;color:var(--ink-mid);transition:all .2s;background:white}
+.jtab:hover{border-color:var(--rose-mid);color:var(--rose-dark)}
+.jtab.active{background:var(--rose-dark);color:white;border-color:var(--rose-dark)}
+
+.jarchive-nav{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.arch-select{border:1.5px solid var(--ink-faint);border-radius:8px;padding:5px 10px;font-size:12px;font-family:var(--font-b);color:var(--ink);background:white;outline:none;cursor:pointer}
+.arch-select:focus{border-color:var(--rose-deep)}
+
+.je{background:white;border-radius:12px;padding:14px 16px;margin-bottom:8px;box-shadow:var(--sh);cursor:pointer;transition:all .2s;border:1.5px solid transparent;position:relative}
+.je:hover{border-color:var(--rose-mid);transform:translateX(3px)}
+.je-date{font-size:10px;color:var(--ink-light);margin-bottom:3px}
+.je-preview{font-size:12px;color:var(--ink);line-height:1.4;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.je-mood{position:absolute;top:12px;right:14px;font-size:16px}
+.je-tag{display:inline-block;font-size:9px;background:var(--rose-light);color:var(--rose-dark);padding:2px 7px;border-radius:10px;margin-top:5px;font-weight:500}
+
+.new-ecard{background:white;border-radius:16px;padding:22px;box-shadow:var(--sh)}
+.ne-top{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.mood-row{display:flex;gap:5px}
+.moodbtn{width:28px;height:28px;border-radius:50%;border:1.5px solid var(--ink-faint);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;transition:all .15s;background:white}
+.moodbtn:hover,.moodbtn.sel{border-color:var(--rose-deep);background:var(--rose-pale);transform:scale(1.15)}
+.jtextarea{width:100%;min-height:150px;border:1.5px solid var(--ink-faint);border-radius:10px;padding:12px 14px;font-size:13px;font-family:var(--font-b);color:var(--ink);resize:vertical;line-height:1.6;outline:none;transition:border .2s}
+.jtextarea:focus{border-color:var(--rose-deep);background:var(--rose-pale)}
+.prompt-chips{margin-bottom:10px}
+.pchip{display:inline-block;background:var(--gold-light);color:var(--ink-mid);border-radius:18px;padding:4px 11px;font-size:10px;margin:2px;cursor:pointer;transition:all .15s;border:1px solid var(--gold)}
+.pchip:hover{background:var(--gold);color:var(--ink)}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:22px;right:22px;background:var(--ink);color:white;padding:9px 18px;border-radius:10px;font-size:12px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:9999;box-shadow:var(--sh-lg)}
+.toast.show{opacity:1}
+
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:var(--rose-pale)}
+::-webkit-scrollbar-thumb{background:var(--rose-mid);border-radius:3px}
+</style>
+</head>
+<body>
+
+<!-- ════════ LOGIN ════════ -->
+<div class="screen active" id="loginScreen">
+  <div class="blob"></div><div class="blob"></div><div class="blob"></div>
+  <div class="lcard">
+    <div class="llogo">bloom</div>
+    <div class="ltag">your personal life planner</div>
+    <div class="ltabs">
+      <div class="ltab active" onclick="authTab('in')">Sign In</div>
+      <div class="ltab" onclick="authTab('up')">Create Account</div>
+    </div>
+    <div id="fIn">
+      <div class="fg"><label class="fl">Username</label><input class="fi" id="liU" placeholder="your username" autocomplete="username"></div>
+      <div class="fg"><label class="fl">Password</label><input class="fi" id="liP" type="password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <button class="pbtn" onclick="doLogin()">Sign In →</button>
+      <div class="lhint">New here? Switch to "Create Account" to register.</div>
+    </div>
+    <div id="fUp" style="display:none">
+      <div class="fg"><label class="fl">Your Name</label><input class="fi" id="suN" placeholder="e.g. Sofia"></div>
+      <div class="fg"><label class="fl">Username</label><input class="fi" id="suU" placeholder="choose a username"></div>
+      <div class="fg"><label class="fl">Password</label><input class="fi" id="suP" type="password" placeholder="min 4 characters" onkeydown="if(event.key==='Enter')doSignup()"></div>
+      <button class="pbtn" onclick="doSignup()">Create Account →</button>
+    </div>
+    <div class="lerr" id="authErr"></div>
+  </div>
+</div>
+
+<!-- ════════ APP ════════ -->
+<div class="screen" id="appScreen">
+  <div class="sidebar" id="sidebar">
+    <div class="sb-logo">
+      <div class="sb-logo-text">bloom</div>
+      <button class="sb-toggle" onclick="toggleSidebar()" title="Toggle sidebar">☰</button>
+    </div>
+    <div style="padding:8px 18px 12px;border-bottom:1px solid rgba(232,160,180,.1)">
+      <div class="sb-user">Hello, <span id="sbName">friend</span> 👋</div>
+    </div>
+    <nav class="sb-nav">
+      <div class="nav-label">Overview</div>
+      <div class="nav-item active" id="nv-home" onclick="goTo('home')"><span class="nav-icon">🏠</span><span class="nav-text">Dashboard</span></div>
+      <div class="nav-label">Trackers</div>
+      <div class="nav-item" id="nv-weekly" onclick="goTo('weekly')"><span class="nav-icon">📅</span><span class="nav-text">Weekly</span></div>
+      <div class="nav-item" id="nv-monthly" onclick="goTo('monthly')"><span class="nav-icon">📆</span><span class="nav-text">Monthly</span></div>
+      <div class="nav-item" id="nv-yearly" onclick="goTo('yearly')"><span class="nav-icon">🗓</span><span class="nav-text">Yearly</span></div>
+      <div class="nav-label">Journal</div>
+      <div class="nav-item" id="nv-jreg" onclick="goTo('jreg')"><span class="nav-icon">📓</span><span class="nav-text">Journal</span></div>
+      <div class="nav-item" id="nv-jgrat" onclick="goTo('jgrat')"><span class="nav-icon">🌸</span><span class="nav-text">Gratitude</span></div>
+      <div class="nav-item" id="nv-jdream" onclick="goTo('jdream')"><span class="nav-icon">🌙</span><span class="nav-text">Dreams</span></div>
+      <div class="nav-label">Settings</div>
+      <div class="nav-item" id="nv-habits" onclick="goTo('habits')"><span class="nav-icon">⚙️</span><span class="nav-text">Manage Habits</span></div>
+    </nav>
+    <div class="sb-bottom">
+      <button class="logout-btn" onclick="doLogout()"><span style="font-size:15px">🚪</span><span class="logout-text">Sign Out</span></button>
+    </div>
+  </div>
+
+  <div class="main-area">
+    <div class="topbar">
+      <div class="topbar-title" id="tbTitle">Dashboard</div>
+      <div class="topbar-date" id="tbDate"></div>
+    </div>
+    <div class="content fade-in" id="mc"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ════ UTILS ════
+const NOW = new Date();
+const TODAY_Y = NOW.getFullYear();
+const TODAY_M = NOW.getMonth(); // 0-based
+const TODAY_D = NOW.getDate();
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const SHORT_M = MONTHS.map(m=>m.slice(0,3));
+const DAYS_LONG = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+const DAYS_SHORT = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const QUOTES=[
+  {t:"The secret of getting ahead is getting started.",a:"Mark Twain"},
+  {t:"Small daily improvements are the key to staggering long-term results.",a:"Robin Sharma"},
+  {t:"You don't have to be great to start, but you have to start to be great.",a:"Zig Ziglar"},
+  {t:"Progress, not perfection.",a:"Unknown"},
+  {t:"Discipline is choosing between what you want now and what you want most.",a:"Abraham Lincoln"},
+  {t:"She believed she could, so she did.",a:"R.S. Grey"},
+  {t:"Done is better than perfect.",a:"Sheryl Sandberg"},
+];
+const HAB_COLORS=['#e8a0b4','#8fada0','#c9a96e','#a0b8e8','#c0a0e8','#e8c0a0','#a0e8c0','#e8e0a0'];
+
+function ld(u,k,def){try{const v=localStorage.getItem(`bloom2_${u}_${k}`);return v!=null?JSON.parse(v):def}catch{return def}}
+function sv(u,k,v){try{localStorage.setItem(`bloom2_${u}_${k}`,JSON.stringify(v))}catch{}}
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200)}
+
+// get monday of current week
+function getWeekMonday(){
+  const d=new Date(NOW);
+  const day=d.getDay();
+  const diff=day===0?-6:1-day;
+  d.setDate(d.getDate()+diff);
+  return d;
+}
+function weekDates(){
+  const mon=getWeekMonday();
+  return Array.from({length:7},(_,i)=>{const d=new Date(mon);d.setDate(mon.getDate()+i);return d});
+}
+function fmtDate(d){return d.toLocaleDateString('en-GB',{day:'2-digit',month:'2-digit',year:'numeric'})}
+function fmtDateShort(d){return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short'})}
+function isToday(d){return d.getDate()===TODAY_D&&d.getMonth()===TODAY_M&&d.getFullYear()===TODAY_Y}
+
+// ════ AUTH ════
+let CU=null; // current user
+function authTab(t){
+  document.querySelectorAll('.ltab').forEach((el,i)=>el.classList.toggle('active',i===(t==='in'?0:1)));
+  document.getElementById('fIn').style.display=t==='in'?'block':'none';
+  document.getElementById('fUp').style.display=t==='up'?'block':'none';
+  document.getElementById('authErr').textContent='';
+}
+function doLogin(){
+  const u=document.getElementById('liU').value.trim();
+  const p=document.getElementById('liP').value;
+  if(!u||!p){document.getElementById('authErr').textContent='Fill in all fields.';return}
+  const users=JSON.parse(localStorage.getItem('bloom2_users')||'{}');
+  if(!users[u]){document.getElementById('authErr').textContent='Account not found. Create one first.';return}
+  if(users[u].pw!==btoa(unescape(encodeURIComponent(p)))){document.getElementById('authErr').textContent='Wrong password.';return}
+  loginUser(u,users[u].name);
+}
+function doSignup(){
+  const name=document.getElementById('suN').value.trim();
+  const u=document.getElementById('suU').value.trim();
+  const p=document.getElementById('suP').value;
+  if(!name||!u||!p){document.getElementById('authErr').textContent='Fill in all fields.';return}
+  if(p.length<4){document.getElementById('authErr').textContent='Password min 4 chars.';return}
+  if(!/^[a-zA-Z0-9_]+$/.test(u)){document.getElementById('authErr').textContent='Username: letters, numbers, _ only.';return}
+  const users=JSON.parse(localStorage.getItem('bloom2_users')||'{}');
+  if(users[u]){document.getElementById('authErr').textContent='Username taken.';return}
+  users[u]={name,pw:btoa(unescape(encodeURIComponent(p)))};
+  localStorage.setItem('bloom2_users',JSON.stringify(users));
+  loginUser(u,name);
+}
+function loginUser(u,name){
+  CU=u;
+  document.getElementById('sbName').textContent=name.split(' ')[0];
+  document.getElementById('loginScreen').classList.remove('active');
+  document.getElementById('appScreen').classList.add('active');
+  updateTopbarDate();
+  goTo('home');
+  sessionStorage.setItem('bloom2_sess',JSON.stringify({u,name}));
+}
+function doLogout(){
+  CU=null;
+  document.getElementById('appScreen').classList.remove('active');
+  document.getElementById('loginScreen').classList.add('active');
+  document.getElementById('liU').value='';
+  document.getElementById('liP').value='';
+  document.getElementById('authErr').textContent='';
+  sessionStorage.removeItem('bloom2_sess');
+}
+// auto-login
+(function(){try{const s=sessionStorage.getItem('bloom2_sess');if(s){const{u,name}=JSON.parse(s);loginUser(u,name)}}catch{}})();
+
+// ════ NAV ════
+const PAGE_TITLES={home:'Dashboard',weekly:'Weekly Planner',monthly:'Monthly Tracker',yearly:'Yearly Overview',jreg:'Journal',jgrat:'Gratitude Journal',jdream:'Dream Journal',habits:'Manage Habits'};
+let sidebarCollapsed=false;
+function toggleSidebar(){
+  sidebarCollapsed=!sidebarCollapsed;
+  document.getElementById('sidebar').classList.toggle('collapsed',sidebarCollapsed);
+}
+function goTo(page){
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const ni=document.getElementById('nv-'+page);if(ni)ni.classList.add('active');
+  document.getElementById('tbTitle').textContent=PAGE_TITLES[page]||page;
+  const mc=document.getElementById('mc');
+  mc.innerHTML='';
+  mc.classList.remove('fade-in');void mc.offsetWidth;mc.classList.add('fade-in');
+  const map={home:renderHome,weekly:renderWeekly,monthly:renderMonthly,yearly:renderYearly,
+    jreg:()=>renderJournal('reg'),jgrat:()=>renderJournal('grat'),jdream:()=>renderJournal('dream'),
+    habits:renderHabitsManager};
+  if(map[page])map[page]();
+}
+function updateTopbarDate(){
+  document.getElementById('tbDate').textContent=NOW.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+}
+
+// ════ SVG RING ════
+function ring(pct,sz,sw,col,lbl){
+  const r=sz/2-sw;const c=2*Math.PI*r;const off=c-(pct/100)*c;
+  return `<div class="ring-wrap"><svg width="${sz}" height="${sz}" viewBox="0 0 ${sz} ${sz}">
+    <circle cx="${sz/2}" cy="${sz/2}" r="${r}" fill="none" stroke="#f0d0d8" stroke-width="${sw}"/>
+    <circle cx="${sz/2}" cy="${sz/2}" r="${r}" fill="none" stroke="${col||'#e8a0b4'}" stroke-width="${sw}"
+      stroke-dasharray="${c.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}" stroke-linecap="round" transform="rotate(-90 ${sz/2} ${sz/2})"/>
+    <text x="${sz/2}" y="${sz/2+5}" text-anchor="middle" font-size="${sz>90?16:12}" font-weight="600" fill="#5a3a42" font-family="DM Sans,sans-serif">${pct}%</text>
+  </svg>${lbl?`<div class="ring-lbl">${lbl}</div>`:''}</div>`;
+}
+
+// ════ HABIT DATA HELPERS ════
+function getHabits(){
+  return ld(CU,'habits',[
+    {id:'h1',name:'Wake up at 6:30',color:'#e8a0b4',freq:'daily',icon:'🌅'},
+    {id:'h2',name:'Drink 2L of water',color:'#8fada0',freq:'daily',icon:'💧'},
+    {id:'h3',name:'Cold shower',color:'#a0b8e8',freq:'daily',icon:'🚿'},
+    {id:'h4',name:'Gym',color:'#c9a96e',freq:'daily',icon:'💪'},
+    {id:'h5',name:'Reading 10 pages',color:'#c0a0e8',freq:'daily',icon:'📚'},
+    {id:'h6',name:'No phone after 10pm',color:'#e8c0a0',freq:'daily',icon:'📵'},
+  ]);
+}
+// weekly check key: bloom2_user_whk_YYYY-Www  e.g. 2025-W23
+function getWeekKey(){
+  const mon=getWeekMonday();
+  // ISO week number
+  const d=new Date(Date.UTC(mon.getFullYear(),mon.getMonth(),mon.getDate()));
+  d.setUTCDate(d.getUTCDate()+4-(d.getUTCDay()||7));
+  const yr=d.getUTCFullYear();
+  const wk=Math.ceil((((d-new Date(Date.UTC(yr,0,1)))/86400000)+1)/7);
+  return `${yr}-W${String(wk).padStart(2,'0')}`;
+}
+function getWeekChecks(){return ld(CU,'wc_'+getWeekKey(),{})}
+function saveWeekChecks(obj){sv(CU,'wc_'+getWeekKey(),obj)}
+// monthly check key: bloom2_user_mhk_YYYY-MM
+function getMonthKey(y,m){return `${y}-${String(m+1).padStart(2,'0')}`}
+function getMonthChecks(y,m){return ld(CU,'mc_'+getMonthKey(y,m),{})}
+function saveMonthChecks(y,m,obj){sv(CU,'mc_'+getMonthKey(y,m),obj)}
+
+// ════ HOME ════
+function renderHome(){
+  const habits=getHabits();
+  const wc=getWeekChecks();
+  const wkDates=weekDates();
+  let habDone=0,habTotal=0;
+  habits.forEach(h=>{wkDates.forEach((_,di)=>{habTotal++;if(wc[h.id]&&wc[h.id][di])habDone++;});});
+  const habPct=habTotal>0?Math.round(habDone/habTotal*100):0;
+
+  const wt=ld(CU,'wt_'+getWeekKey(),{});
+  const allT=Object.values(wt).flat();
+  const tDone=allT.filter(t=>t.done).length;
+  const tPct=allT.length>0?Math.round(tDone/allT.length*100):0;
+
+  const mhPct=calcMonthHabPct(TODAY_Y,TODAY_M);
+  const jTotal=['reg','grat','dream'].reduce((s,t)=>s+ld(CU,'j_'+t,[]).length,0);
+  const hr=NOW.getHours();
+  const greet=hr<12?'Good morning':hr<17?'Good afternoon':'Good evening';
+  const uname=document.getElementById('sbName').textContent;
+  const q=QUOTES[TODAY_D%QUOTES.length];
+
+  document.getElementById('mc').innerHTML=`
+    <div class="greeting"><em>${greet}</em>, ${uname} ✨</div>
+    <div style="font-size:12px;color:var(--ink-light);margin-bottom:20px;">${NOW.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</div>
+    <div class="quote-card">
+      <div class="qt">${q.t}</div>
+      <div class="qa">— ${q.a}</div>
+    </div>
+    <div class="dash-grid">
+      <div class="dash-card dc-rose" onclick="goTo('weekly')">
+        <div class="dc-icon">🌿</div><div class="dc-lbl">Weekly Habits</div>
+        <div class="dc-val">${habPct}%</div><div class="dc-sub">${habDone}/${habTotal} checks</div>
+      </div>
+      <div class="dash-card dc-sage" onclick="goTo('weekly')">
+        <div class="dc-icon">✅</div><div class="dc-lbl">Weekly Tasks</div>
+        <div class="dc-val">${tPct}%</div><div class="dc-sub">${tDone}/${allT.length} tasks</div>
+      </div>
+      <div class="dash-card dc-gold" onclick="goTo('monthly')">
+        <div class="dc-icon">📆</div><div class="dc-lbl">Monthly Habits</div>
+        <div class="dc-val">${mhPct}%</div><div class="dc-sub">${MONTHS[TODAY_M]} ${TODAY_Y}</div>
+      </div>
+      <div class="dash-card" onclick="goTo('jreg')">
+        <div class="dc-icon">📓</div><div class="dc-lbl">Journal Entries</div>
+        <div class="dc-val">${jTotal}</div><div class="dc-sub">Across all journals</div>
+      </div>
+    </div>
+    <div class="sec-card">
+      <div class="sec-title">This Week at a Glance</div>
+      <div style="display:flex;gap:20px;flex-wrap:wrap;justify-content:center;padding:8px 0">
+        ${ring(habPct,96,10,'#e8a0b4','Habits')}
+        ${ring(tPct,96,10,'#8fada0','Tasks')}
+        ${ring(mhPct,96,10,'#c9a96e','Month')}
+      </div>
+    </div>`;
+}
+
+// ════ WEEKLY ════
+function renderWeekly(){
+  const habits=getHabits();
+  const wc=getWeekChecks();
+  const wt=ld(CU,'wt_'+getWeekKey(),{});
+  const meta=ld(CU,'wmeta',{focus:"This week's priority",reward:'Treat yourself',affirmation:'I am capable of anything.'});
+  const dates=weekDates();
+  const wkKey=getWeekKey();
+
+  let habDone=0,habTot=0;
+  habits.forEach(h=>{dates.forEach((_,di)=>{habTot++;if(wc[h.id]&&wc[h.id][di])habDone++;});});
+  const habPct=habTot>0?Math.round(habDone/habTot*100):0;
+  const allT=Object.values(wt).flat();
+  const tPct=allT.length>0?Math.round(allT.filter(t=>t.done).length/allT.length*100):0;
+
+  const colTpl=`160px repeat(7,26px) 55px 22px`;
+  const habRows=habits.map((h,hi)=>{
+    const done=dates.reduce((s,_,di)=>s+(wc[h.id]&&wc[h.id][di]?1:0),0);
+    const pct=Math.round(done/7*100);
+    const boxes=dates.map((_,di)=>{
+      const on=wc[h.id]&&wc[h.id][di];
+      return `<div class="hbox ${on?'on':''}" style="${on?`background:${h.color};border-color:${h.color}`:''}" onclick="toggleWkHab('${h.id}',${di})">${on?'✓':''}</div>`;
+    }).join('');
+    return `<div class="hab-row" style="display:grid;grid-template-columns:${colTpl};gap:3px;align-items:center">
+      <div class="hab-name" contenteditable="true" onblur="renameHabit('${h.id}',this)">${h.icon||''} ${h.name}</div>
+      ${boxes}
+      <div style="font-size:10px;color:var(--ink-mid);text-align:right">${pct}%<div class="hab-pbar"><div class="hab-pfill" style="width:${pct}%;background:${h.color}"></div></div></div>
+      <button class="del-btn" onclick="delHabitConfirm('${h.id}')">✕</button>
+    </div>`;
+  }).join('');
+
+  const dayCols=dates.map((date,di)=>{
+    const dayKey=DAYS_LONG[di];
+    const dtasks=wt[dayKey]||[];
+    const done=dtasks.filter(t=>t.done).length;
+    const pct=dtasks.length>0?Math.round(done/dtasks.length*100):0;
+    const r=28,c=+(2*Math.PI*r).toFixed(1),off=+(c-(pct/100)*c).toFixed(1);
+    const isTod=isToday(date);
+    const taskRows=dtasks.map((t,ti)=>`
+      <div class="task-row">
+        <div class="tcb ${t.done?'on':''}" onclick="toggleWkTask('${wkKey}','${dayKey}',${ti})">${t.done?'✓':''}</div>
+        <div class="ttxt ${t.done?'done':''}" contenteditable="true" onblur="renameWkTask('${wkKey}','${dayKey}',${ti},this)">${t.text}</div>
+        <button class="del-btn" onclick="delWkTask('${wkKey}','${dayKey}',${ti})">✕</button>
+      </div>`).join('');
+    const headCol=isTod?'linear-gradient(135deg,var(--rose-deep),var(--rose-dark))':'var(--rose-mid)';
+    return `<div class="wcol ${isTod?'today':''}">
+      <div class="wcol-head" style="background:${headCol}">
+        <div class="wcol-day" style="color:${isTod?'white':'var(--ink)'}">${DAYS_LONG[di]}</div>
+        <div class="wcol-date" style="color:${isTod?'rgba(255,255,255,.8)':'var(--ink-mid)'}">${fmtDate(date)}</div>
+      </div>
+      <div style="display:flex;justify-content:center;padding:10px 0 4px">
+        <svg width="62" height="62" viewBox="0 0 62 62">
+          <circle cx="31" cy="31" r="${r}" fill="none" stroke="#fbe8ed" stroke-width="7"/>
+          <circle cx="31" cy="31" r="${r}" fill="none" stroke="${isTod?'var(--rose-dark)':'#e8a0b4'}" stroke-width="7"
+            stroke-dasharray="${c}" stroke-dashoffset="${off}" stroke-linecap="round" transform="rotate(-90 31 31)"/>
+          <text x="31" y="35" text-anchor="middle" font-size="11" font-weight="600" fill="#5a3a42">${pct}%</text>
+        </svg>
+      </div>
+      <div class="wcol-body">
+        <div class="wtasks-hd">Tasks</div>
+        ${taskRows}
+        <div class="add-row" style="margin-top:5px">
+          <input class="add-inp" style="font-size:10px;padding:4px 7px" placeholder="Add task…" onkeydown="if(event.key==='Enter')addWkTask('${wkKey}','${dayKey}',this)">
+          <button class="add-btn" style="padding:4px 8px;font-size:10px" onclick="addWkTask('${wkKey}','${dayKey}',this.previousElementSibling)">+</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('mc').innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:18px">
+      <div>
+        <div style="font-family:var(--font-d);font-size:28px;font-weight:400">Week of ${fmtDateShort(dates[0])} – ${fmtDateShort(dates[6])}</div>
+        <div style="font-size:11px;color:var(--ink-light)">${getWeekKey()}</div>
+      </div>
+      <div style="display:flex;gap:14px;flex-wrap:wrap">${ring(habPct,80,9,'#e8a0b4','Habits')}${ring(tPct,80,9,'#8fada0','Tasks')}</div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-bottom:16px">
+      <div class="sec-card" style="padding:14px">
+        <div style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--ink-light);margin-bottom:4px">Weekly Focus 🎯</div>
+        <div contenteditable="true" onblur="saveWMeta('focus',this)" style="font-size:12px;min-height:18px">${meta.focus}</div>
+      </div>
+      <div class="sec-card" style="padding:14px">
+        <div style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--ink-light);margin-bottom:4px">Reward 🏆</div>
+        <div contenteditable="true" onblur="saveWMeta('reward',this)" style="font-size:12px;min-height:18px">${meta.reward}</div>
+      </div>
+      <div class="sec-card" style="padding:14px">
+        <div style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--ink-light);margin-bottom:4px">Affirmation 💌</div>
+        <div contenteditable="true" onblur="saveWMeta('affirmation',this)" style="font-size:12px;font-style:italic;color:var(--ink-mid);min-height:18px">${meta.affirmation}</div>
+      </div>
+    </div>
+    <div class="sec-card">
+      <div class="sec-title">🌿 Habit Tracker <button class="add-btn" style="font-size:10px;padding:3px 10px;margin-left:8px" onclick="goTo('habits')">⚙️ Manage Habits</button></div>
+      <div style="display:grid;grid-template-columns:${colTpl};gap:3px;margin-bottom:6px;font-size:9px;font-weight:600;color:var(--ink-light);text-align:center;padding-bottom:4px;border-bottom:1px solid var(--ink-faint)">
+        <div style="text-align:left">Habit</div>
+        ${dates.map(d=>`<div>${DAYS_SHORT[dates.indexOf(d)]}<br><span style="font-weight:400;font-size:8px;color:var(--ink-light)">${d.getDate()}</span></div>`).join('')}
+        <div>%</div><div></div>
+      </div>
+      ${habRows}
+    </div>
+    <div class="sec-card">
+      <div class="sec-title">📋 Daily Tasks</div>
+      <div class="week-cols">${dayCols}</div>
+    </div>`;
+}
+
+function toggleWkHab(hid,di){
+  const wc=getWeekChecks();
+  if(!wc[hid])wc[hid]={};
+  wc[hid][di]=!wc[hid][di];
+  saveWeekChecks(wc);renderWeekly();
+}
+function renameHabit(hid,el){
+  const h=getHabits();const i=h.findIndex(x=>x.id===hid);
+  if(i>=0){h[i].name=el.innerText.trim().replace(/^[\S]+\s/,'');sv(CU,'habits',h);}
+}
+function delHabitConfirm(hid){
+  if(!confirm('Remove this habit?'))return;
+  const h=getHabits().filter(x=>x.id!==hid);sv(CU,'habits',h);renderWeekly();
+}
+function toggleWkTask(wkKey,day,ti){
+  const wt=ld(CU,'wt_'+wkKey,{});wt[day][ti].done=!wt[day][ti].done;sv(CU,'wt_'+wkKey,wt);renderWeekly();
+}
+function renameWkTask(wkKey,day,ti,el){
+  const wt=ld(CU,'wt_'+wkKey,{});if(wt[day]&&wt[day][ti])wt[day][ti].text=el.innerText.trim();sv(CU,'wt_'+wkKey,wt);
+}
+function delWkTask(wkKey,day,ti){
+  const wt=ld(CU,'wt_'+wkKey,{});if(wt[day])wt[day].splice(ti,1);sv(CU,'wt_'+wkKey,wt);renderWeekly();
+}
+function addWkTask(wkKey,day,inp){
+  const v=inp.value.trim();if(!v)return;
+  const wt=ld(CU,'wt_'+wkKey,{});if(!wt[day])wt[day]=[];
+  wt[day].push({text:v,done:false});sv(CU,'wt_'+wkKey,wt);inp.value='';renderWeekly();
+}
+function saveWMeta(f,el){const m=ld(CU,'wmeta',{});m[f]=el.innerText.trim();sv(CU,'wmeta',m);}
+
+// ════ MONTHLY ════
+function calcMonthHabPct(y,m){
+  const habits=getHabits();
+  const mc=getMonthChecks(y,m);
+  const dim=new Date(y,m+1,0).getDate();
+  let done=0,tot=0;
+  habits.forEach(h=>{for(let d=1;d<=dim;d++){tot++;if(mc[h.id]&&mc[h.id][d])done++;}});
+  return tot>0?Math.round(done/tot*100):0;
+}
+
+let viewMonth=TODAY_M, viewYear=TODAY_Y;
+function renderMonthly(){
+  const habits=getHabits();
+  const mc=getMonthChecks(viewYear,viewMonth);
+  const dim=new Date(viewYear,viewMonth+1,0).getDate();
+  const goals=ld(CU,'mg_'+getMonthKey(viewYear,viewMonth),[
+    'Set monthly goals','Review last month','Plan the month','Track habits daily',
+    'Focus on one big goal','Start one big project','Declutter one area','Deep clean space'
+  ].map(t=>({text:t,done:false})));
+  const pct=calcMonthHabPct(viewYear,viewMonth);
+
+  // build weeks: array of day-ranges
+  const weeks=[];let wk=[];
+  for(let d=1;d<=dim;d++){
+    const dow=new Date(viewYear,viewMonth,d).getDay();
+    wk.push(d);
+    if(dow===0||d===dim){weeks.push([...wk]);wk=[];}
+    else if(d===1&&dow!==1){} // partial first week handled
+  }
+  // simpler: just show 5 week columns with day numbers
+  const weekSlots=[];
+  for(let w=0;w<6;w++){
+    const start=w*7+1,end=Math.min(w*7+7,dim);
+    if(start>dim)break;
+    weekSlots.push({start,end});
+  }
+
+  const habRows=habits.map((h,hi)=>{
+    const row=weekSlots.map(({start,end})=>{
+      const wdone=Array.from({length:end-start+1},(_,i)=>mc[h.id]&&mc[h.id][start+i]?1:0).reduce((a,b)=>a+b,0);
+      const wtot=end-start+1;
+      const on=wdone===wtot;
+      const col=on?h.color:wdone>0?h.color+'80':'var(--ink-faint)';
+      return `<div style="text-align:center;cursor:pointer;font-size:11px;padding:4px;border-radius:6px;background:${col};color:${wdone>0?'white':'var(--ink-light)'};" 
+        onclick="toggleMonthWeek('${h.id}',${start},${end})">${wdone}/${wtot}</div>`;
+    }).join('');
+    const totalDone=Array.from({length:dim},(_,i)=>mc[h.id]&&mc[h.id][i+1]?1:0).reduce((a,b)=>a+b,0);
+    const pp=Math.round(totalDone/dim*100);
+    return `<div class="hab-row" style="display:grid;grid-template-columns:160px repeat(${weekSlots.length},1fr) 50px 22px;gap:4px;align-items:center">
+      <div class="hab-name">${h.icon||''} ${h.name}</div>
+      ${row}
+      <div style="font-size:10px;color:var(--ink-mid);text-align:right">${pp}%<div class="hab-pbar"><div class="hab-pfill" style="width:${pp}%;background:${h.color}"></div></div></div>
+      <div></div>
+    </div>`;
+  }).join('');
+
+  const goalRows=goals.map((g,gi)=>`
+    <div class="task-row">
+      <div class="tcb ${g.done?'on':''}" onclick="toggleMGoal(${gi})">${g.done?'✓':''}</div>
+      <div class="ttxt ${g.done?'done':''}" contenteditable="true" onblur="renameMGoal(${gi},this)">${g.text}</div>
+      <button class="del-btn" onclick="delMGoal(${gi})">✕</button>
+    </div>`).join('');
+
+  // month navigator
+  const prevM=viewMonth===0?11:viewMonth-1;const prevY=viewMonth===0?viewYear-1:viewYear;
+  const nextM=viewMonth===11?0:viewMonth+1;const nextY=viewMonth===11?viewYear+1:viewYear;
+
+  document.getElementById('mc').innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:18px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <button class="btn-sec" style="padding:6px 12px" onclick="viewMonth=${prevM};viewYear=${prevY};renderMonthly()">← ${SHORT_M[prevM]}</button>
+        <div>
+          <div style="font-family:var(--font-d);font-size:28px;font-weight:400">${MONTHS[viewMonth]} ${viewYear}</div>
+          <div style="font-size:11px;color:var(--ink-light)">Monthly Tracker</div>
+        </div>
+        <button class="btn-sec" style="padding:6px 12px" onclick="viewMonth=${nextM};viewYear=${nextY};renderMonthly()">${SHORT_M[nextM]} →</button>
+      </div>
+      ${ring(pct,90,10,'#c9a96e','This Month')}
+    </div>
+    <div class="sec-card">
+      <div class="sec-title">🌿 Monthly Habits — Week by Week <button class="add-btn" style="font-size:10px;padding:3px 10px;margin-left:8px" onclick="goTo('habits')">⚙️ Manage</button></div>
+      <div style="display:grid;grid-template-columns:160px repeat(${weekSlots.length},1fr) 50px 22px;gap:4px;font-size:9px;font-weight:600;color:var(--ink-light);margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--ink-faint)">
+        <div>Habit</div>
+        ${weekSlots.map(({start,end})=>`<div style="text-align:center">D${start}–${end}</div>`).join('')}
+        <div style="text-align:right">%</div><div></div>
+      </div>
+      ${habRows}
+      <div style="font-size:10px;color:var(--ink-light);margin-top:8px">💡 Click a week cell to toggle all days in that range</div>
+    </div>
+    <div class="sec-card">
+      <div class="sec-title">🎯 Monthly Goals</div>
+      <div id="mGoalRows">${goalRows}</div>
+      <div class="add-row" style="margin-top:10px">
+        <input class="add-inp" id="newMGoal" placeholder="New goal for ${MONTHS[viewMonth]}…" onkeydown="if(event.key==='Enter')addMGoal()">
+        <button class="add-btn" onclick="addMGoal()">+ Add</button>
+      </div>
+    </div>`;
+}
+
+function toggleMonthWeek(hid,start,end){
+  const mc=getMonthChecks(viewYear,viewMonth);
+  if(!mc[hid])mc[hid]={};
+  const allOn=Array.from({length:end-start+1},(_,i)=>mc[hid][start+i]).every(Boolean);
+  for(let d=start;d<=end;d++)mc[hid][d]=!allOn;
+  saveMonthChecks(viewYear,viewMonth,mc);renderMonthly();
+}
+function mGoalKey(){return 'mg_'+getMonthKey(viewYear,viewMonth)}
+function toggleMGoal(gi){const g=ld(CU,mGoalKey(),[]);g[gi].done=!g[gi].done;sv(CU,mGoalKey(),g);renderMonthly();}
+function renameMGoal(gi,el){const g=ld(CU,mGoalKey(),[]);if(g[gi])g[gi].text=el.innerText.trim();sv(CU,mGoalKey(),g);}
+function delMGoal(gi){const g=ld(CU,mGoalKey(),[]);g.splice(gi,1);sv(CU,mGoalKey(),g);renderMonthly();}
+function addMGoal(){const inp=document.getElementById('newMGoal');const v=inp.value.trim();if(!v)return;const g=ld(CU,mGoalKey(),[]);g.push({text:v,done:false});sv(CU,mGoalKey(),g);inp.value='';renderMonthly();}
+
+// ════ YEARLY ════
+let viewYearY=TODAY_Y;
+function renderYearly(){
+  const yd=ld(CU,'ydata_'+viewYearY,{});
+  const goals=ld(CU,'ygoals_'+viewYearY,[
+    'Read 12 books','Save 3 months expenses','Run a 5K','Learn a new skill',
+    'Travel to one new place','Start a side project','Improve sleep routine',
+    'Reduce screen time','Eat cleaner 70%','Reflect weekly','Help someone deeply'
+  ].map(t=>({text:t,done:false})));
+
+  const blocks=MONTHS.map((m,mi)=>{
+    const md=yd[mi]||{pct:0,note:''};
+    const isCur=mi===TODAY_M&&viewYearY===TODAY_Y;
+    const isFut=viewYearY===TODAY_Y&&mi>TODAY_M;
+    return `<div class="mblock ${md.pct>0?'has':''} ${isCur?'cur':''}" style="${isFut?'opacity:.45':''}" onclick="editYearMonth(${mi})">
+      <div class="mbn">${SHORT_M[mi]}</div>
+      <div class="mbp" style="color:${md.pct>0?'var(--rose-dark)':'var(--ink-faint)'}">${md.pct>0?md.pct+'%':'—'}</div>
+      <div class="mb-bar"><div class="mb-bar-fill" style="width:${md.pct||0}%"></div></div>
+      ${md.note?`<div style="font-size:8px;color:var(--ink-light);margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${md.note}</div>`:''}
+    </div>`;
+  }).join('');
+  const totalPct=Math.round(MONTHS.reduce((s,_,i)=>s+(yd[i]?.pct||0),0)/12);
+
+  const goalRows=goals.map((g,gi)=>`
+    <div class="task-row">
+      <div class="tcb ${g.done?'on':''}" onclick="toggleYGoal(${gi})">${g.done?'✓':''}</div>
+      <div class="ttxt ${g.done?'done':''}" contenteditable="true" onblur="renameYGoal(${gi},this)">${g.text}</div>
+      <button class="del-btn" onclick="delYGoal(${gi})">✕</button>
+    </div>`).join('');
+
+  document.getElementById('mc').innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:18px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <button class="btn-sec" style="padding:6px 12px" onclick="viewYearY--;renderYearly()">← ${viewYearY-1}</button>
+        <div>
+          <div style="font-family:var(--font-d);font-size:28px;font-weight:400">${viewYearY} — Year Overview</div>
+          <div style="font-size:11px;color:var(--ink-light)">Click a month to update its progress</div>
+        </div>
+        <button class="btn-sec" style="padding:6px 12px" onclick="viewYearY++;renderYearly()">${viewYearY+1} →</button>
+      </div>
+      ${ring(totalPct,96,10,'#c9a96e','Year Progress')}
+    </div>
+    <div class="sec-card">
+      <div class="sec-title">📅 Monthly Progress</div>
+      <div class="yr-grid">${blocks}</div>
+    </div>
+    <div class="sec-card">
+      <div class="sec-title">⭐ Yearly Goals</div>
+      <div id="yGoalRows">${goalRows}</div>
+      <div class="add-row" style="margin-top:10px">
+        <input class="add-inp" id="newYGoal" placeholder="New goal for ${viewYearY}…" onkeydown="if(event.key==='Enter')addYGoal()">
+        <button class="add-btn" onclick="addYGoal()">+ Add</button>
+      </div>
+    </div>
+    <div id="ymModal" style="display:none;position:fixed;inset:0;background:rgba(30,16,20,.55);z-index:200;align-items:center;justify-content:center">
+      <div style="background:white;border-radius:22px;padding:32px;width:min(360px,92vw);box-shadow:var(--sh-lg)">
+        <div style="font-family:var(--font-d);font-size:24px;margin-bottom:16px" id="ymTitle">Month</div>
+        <div class="fg"><label class="fl">Completion %</label><input class="fi" type="number" min="0" max="100" id="ymPct"></div>
+        <div class="fg"><label class="fl">Note / Highlight</label><input class="fi" id="ymNote" placeholder="e.g. Focused on fitness"></div>
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px">
+          <button class="btn-sec" onclick="document.getElementById('ymModal').style.display='none'">Cancel</button>
+          <button class="btn-save" onclick="saveYMonth()">Save</button>
+        </div>
+      </div>
+    </div>`;
+}
+let editingYM=null;
+function editYearMonth(mi){
+  editingYM=mi;
+  const yd=ld(CU,'ydata_'+viewYearY,{});
+  const md=yd[mi]||{};
+  document.getElementById('ymTitle').textContent=MONTHS[mi]+' '+viewYearY;
+  document.getElementById('ymPct').value=md.pct||'';
+  document.getElementById('ymNote').value=md.note||'';
+  document.getElementById('ymModal').style.display='flex';
+}
+function saveYMonth(){
+  const pct=Math.min(100,Math.max(0,parseInt(document.getElementById('ymPct').value)||0));
+  const note=document.getElementById('ymNote').value.trim();
+  const yd=ld(CU,'ydata_'+viewYearY,{});
+  yd[editingYM]={pct,note};sv(CU,'ydata_'+viewYearY,yd);
+  document.getElementById('ymModal').style.display='none';
+  renderYearly();toast('Month updated ✓');
+}
+function toggleYGoal(gi){const g=ld(CU,'ygoals_'+viewYearY,[]);g[gi].done=!g[gi].done;sv(CU,'ygoals_'+viewYearY,g);renderYearly();}
+function renameYGoal(gi,el){const g=ld(CU,'ygoals_'+viewYearY,[]);if(g[gi])g[gi].text=el.innerText.trim();sv(CU,'ygoals_'+viewYearY,g);}
+function delYGoal(gi){const g=ld(CU,'ygoals_'+viewYearY,[]);g.splice(gi,1);sv(CU,'ygoals_'+viewYearY,g);renderYearly();}
+function addYGoal(){const inp=document.getElementById('newYGoal');const v=inp.value.trim();if(!v)return;const g=ld(CU,'ygoals_'+viewYearY,[]);g.push({text:v,done:false});sv(CU,'ygoals_'+viewYearY,g);inp.value='';renderYearly();}
+
+// ════ JOURNAL ════
+const JCFG={
+  reg:{label:'Journal',icon:'📓',color:'var(--rose-dark)',
+    prompts:['What happened today?','What are you thinking about?','What challenged you?','What made you smile?','What do you want to remember?']},
+  grat:{label:'Gratitude',icon:'🌸',color:'#8fada0',
+    prompts:['3 things I\'m grateful for…','Someone who made my day better…','A small moment I appreciated…','A challenge that taught me something…','Something about myself I\'m thankful for…']},
+  dream:{label:'Dreams',icon:'🌙',color:'#7a6aaa',
+    prompts:['I dreamed about…','The feeling in my dream was…','Symbols I noticed…','What I think it means…','A recurring theme lately…']},
+};
+
+let jViewType='reg', jViewYear=TODAY_Y, jViewMonth=TODAY_M;
+let jSelectedMood='📝';
+
+function renderJournal(type){
+  jViewType=type;
+  const cfg=JCFG[type];
+  const allEntries=ld(CU,'j_'+type,[]);
+
+  // build year/month options from entries
+  const byYM={};
+  allEntries.forEach((e,i)=>{
+    const k=`${e.year}-${String(e.month+1).padStart(2,'0')}`;
+    if(!byYM[k])byYM[k]={y:e.year,m:e.month,entries:[]};
+    byYM[k].entries.push({...e,origIdx:i});
+  });
+
+  // get unique years
+  const years=[...new Set(allEntries.map(e=>e.year))].sort((a,b)=>b-a);
+  if(!years.includes(TODAY_Y))years.unshift(TODAY_Y);
+
+  // filter entries for current view
+  const viewEntries=allEntries.map((e,i)=>({...e,origIdx:i}))
+    .filter(e=>e.year===jViewYear&&e.month===jViewMonth)
+    .reverse();
+
+  const yearOpts=years.map(y=>`<option value="${y}" ${y===jViewYear?'selected':''}>${y}</option>`).join('');
+  const monthOpts=MONTHS.map((m,mi)=>`<option value="${mi}" ${mi===jViewMonth?'selected':''}>${m}</option>`).join('');
+
+  const entryList=viewEntries.length?viewEntries.map(e=>`
+    <div class="je" onclick="openJEntry(${e.origIdx},'${type}')">
+      <div class="je-mood">${e.mood||'📝'}</div>
+      <div class="je-date">${e.dateStr} · ${e.timeStr||''}</div>
+      <div class="je-preview">${e.text}</div>
+      <span class="je-tag">${cfg.icon} ${cfg.label}</span>
+    </div>`).join('')
+    :`<div style="color:var(--ink-light);font-size:12px;padding:20px 0;text-align:center">No entries for ${MONTHS[jViewMonth]} ${jViewYear} yet ✨</div>`;
+
+  const totalCount=allEntries.length;
+  const monthCount=viewEntries.length;
+
+  document.getElementById('mc').innerHTML=`
+    <div style="margin-bottom:18px">
+      <div style="font-family:var(--font-d);font-size:28px;font-weight:400;margin-bottom:6px">${cfg.icon} ${cfg.label}</div>
+      <div style="font-size:11px;color:var(--ink-light)">${totalCount} total · ${monthCount} in ${MONTHS[jViewMonth]} ${jViewYear}</div>
+    </div>
+
+    <div class="jtabs">
+      ${Object.keys(JCFG).map(t=>`<div class="jtab ${t===type?'active':''}" onclick="renderJournal('${t}')">${JCFG[t].icon} ${JCFG[t].label}</div>`).join('')}
+    </div>
+
+    <div class="sec-card">
+      <div class="sec-title">📚 Archive — Browse by Month & Year</div>
+      <div class="jarchive-nav">
+        <select class="arch-select" onchange="jViewYear=parseInt(this.value);renderJournal('${type}')">${yearOpts}</select>
+        <select class="arch-select" onchange="jViewMonth=parseInt(this.value);renderJournal('${type}')">${monthOpts}</select>
+        <span style="font-size:11px;color:var(--ink-light)">${monthCount} entr${monthCount===1?'y':'ies'}</span>
+      </div>
+      <div>${entryList}</div>
+    </div>
+
+    <div class="new-ecard">
+      <div style="font-family:var(--font-d);font-size:22px;color:${cfg.color};margin-bottom:12px">New Entry — ${NOW.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</div>
+      <div class="ne-top">
+        <span style="font-size:11px;color:var(--ink-light)">Mood:</span>
+        <div class="mood-row">${['😊','😌','😔','😤','🥺','😴','🌟','💪'].map(m=>`<div class="moodbtn" onclick="selMood(this,'${m}')" data-mood="${m}">${m}</div>`).join('')}</div>
+      </div>
+      <div class="prompt-chips">
+        <span style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--ink-light);margin-right:6px">Prompts:</span>
+        ${cfg.prompts.map(p=>`<span class="pchip" onclick="usePrompt('${p.replace(/'/g,"\\'")}')">${p}</span>`).join('')}
+      </div>
+      <textarea class="jtextarea" id="jtxt" placeholder="Start writing…"></textarea>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px">
+        <button class="btn-sec" onclick="document.getElementById('jtxt').value=''">Clear</button>
+        <button class="btn-save" onclick="saveJEntry('${type}')">Save Entry →</button>
+      </div>
+    </div>`;
+}
+
+function selMood(el,mood){
+  document.querySelectorAll('.moodbtn').forEach(b=>b.classList.remove('sel'));
+  el.classList.add('sel');jSelectedMood=mood;
+}
+function usePrompt(p){const ta=document.getElementById('jtxt');if(ta){ta.value=(ta.value?ta.value+'\n\n':'')+p+'\n';ta.focus();}}
+function saveJEntry(type){
+  const text=document.getElementById('jtxt').value.trim();
+  if(!text){toast('Write something first ✏️');return;}
+  const entries=ld(CU,'j_'+type,[]);
+  entries.push({
+    text,mood:jSelectedMood,
+    year:TODAY_Y,month:TODAY_M,day:TODAY_D,
+    dateStr:NOW.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'}),
+    timeStr:NOW.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),
+  });
+  sv(CU,'j_'+type,entries);
+  // reset view to current month/year to show new entry
+  jViewYear=TODAY_Y;jViewMonth=TODAY_M;
+  toast('Entry saved 🌸');
+  jSelectedMood='📝';
+  renderJournal(type);
+}
+function openJEntry(i,type){
+  const entries=ld(CU,'j_'+type,[]);
+  const e=entries[i];if(!e)return;
+  const ov=document.createElement('div');
+  ov.className='modal-overlay';
+  ov.innerHTML=`<div class="modal-box">
+    <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:16px">
+      <div>
+        <div style="font-family:var(--font-d);font-size:24px">${e.mood} ${e.dateStr}</div>
+        <div style="font-size:11px;color:var(--ink-light)">${e.timeStr||''} · ${JCFG[type].label}</div>
+      </div>
+      <button onclick="this.closest('.modal-overlay').remove()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--ink-light)">✕</button>
+    </div>
+    <div style="font-size:14px;line-height:1.8;color:var(--ink);white-space:pre-wrap;background:var(--rose-pale);border-radius:10px;padding:16px">${e.text}</div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:18px">
+      <button class="btn-sec" onclick="deleteJEntry(${i},'${type}',this.closest('.modal-overlay'))">Delete</button>
+      <button class="btn-save" onclick="this.closest('.modal-overlay').remove()">Close</button>
+    </div>
+  </div>`;
+  document.body.appendChild(ov);
+}
+function deleteJEntry(i,type,ov){
+  if(!confirm('Delete this entry?'))return;
+  const entries=ld(CU,'j_'+type,[]);entries.splice(i,1);sv(CU,'j_'+type,entries);
+  ov.remove();renderJournal(type);toast('Deleted');
+}
+
+// ════ HABITS MANAGER ════
+function renderHabitsManager(){
+  const habits=getHabits();
+  const habRows=habits.map((h,hi)=>`
+    <div class="habit-customize-row">
+      <div style="width:28px;height:28px;border-radius:50%;background:${h.color};border:2px solid rgba(0,0,0,.1);flex-shrink:0"></div>
+      <span style="font-size:16px">${h.icon||'🔵'}</span>
+      <div style="flex:1;font-size:12px;font-weight:500">${h.name}</div>
+      <select class="hab-freq-select" onchange="changeHabFreq('${h.id}',this.value)">
+        <option value="daily" ${h.freq==='daily'?'selected':''}>Daily</option>
+        <option value="weekdays" ${h.freq==='weekdays'?'selected':''}>Weekdays</option>
+        <option value="weekends" ${h.freq==='weekends'?'selected':''}>Weekends</option>
+      </select>
+      <button class="add-btn" style="padding:5px 10px;font-size:11px" onclick="editHabitModal(${hi})">✏️ Edit</button>
+      <button class="del-btn" style="font-size:14px" onclick="deleteHabitFull('${h.id}')">🗑</button>
+    </div>`).join('');
+
+  document.getElementById('mc').innerHTML=`
+    <div style="font-family:var(--font-d);font-size:28px;font-weight:400;margin-bottom:6px">⚙️ Manage Habits</div>
+    <div style="font-size:12px;color:var(--ink-light);margin-bottom:20px">Customise your habits — name, colour, icon and frequency.</div>
+
+    <div class="sec-card">
+      <div class="sec-title">Your Habits</div>
+      <div id="habCustomRows">${habRows || '<div style="color:var(--ink-light);font-size:12px;padding:10px 0">No habits yet. Add one below!</div>'}</div>
+      <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--ink-faint)">
+        <button class="pbtn" style="width:auto;padding:10px 24px" onclick="newHabitModal()">+ Add New Habit</button>
+      </div>
+    </div>
+
+    <div class="sec-card">
+      <div class="sec-title">💡 Tips</div>
+      <div style="font-size:12px;color:var(--ink-mid);line-height:1.8">
+        • Start with <strong>3–5 habits</strong> for best results.<br>
+        • Use the <strong>colour</strong> to group similar habits visually.<br>
+        • Your habit data is saved per week/month — deleting a habit won't erase past records.<br>
+        • Click ✏️ Edit to change name, colour, and icon anytime.
+      </div>
+    </div>
+
+    <div id="habModal" style="display:none" class="modal-overlay">
+      <div class="modal-box">
+        <div class="modal-title" id="habModalTitle">New Habit</div>
+        <div class="fg"><label class="fl">Habit Name</label><input class="fi" id="hmName" placeholder="e.g. Morning walk"></div>
+        <div class="fg"><label class="fl">Icon (emoji)</label><input class="fi" id="hmIcon" placeholder="e.g. 🚶" maxlength="2" style="font-size:20px;text-align:center"></div>
+        <div class="fg"><label class="fl">Colour</label>
+          <div class="color-swatch-row" id="hmColorRow">
+            ${HAB_COLORS.map(c=>`<div class="cswatch" style="background:${c}" data-color="${c}" onclick="selectHabColor(this)"></div>`).join('')}
+          </div>
+          <input class="fi" id="hmColor" placeholder="#e8a0b4" maxlength="7" style="font-size:12px">
+        </div>
+        <div class="fg"><label class="fl">Frequency</label>
+          <select class="fi" id="hmFreq">
+            <option value="daily">Daily</option>
+            <option value="weekdays">Weekdays only</option>
+            <option value="weekends">Weekends only</option>
+          </select>
+        </div>
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px">
+          <button class="btn-sec" onclick="document.getElementById('habModal').style.display='none'">Cancel</button>
+          <button class="btn-save" onclick="saveHabitModal()">Save Habit</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+let editingHabitIdx=null;
+function selectHabColor(el){
+  document.querySelectorAll('.cswatch').forEach(s=>s.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('hmColor').value=el.dataset.color;
+}
+function newHabitModal(){
+  editingHabitIdx=null;
+  document.getElementById('habModalTitle').textContent='New Habit';
+  document.getElementById('hmName').value='';
+  document.getElementById('hmIcon').value='';
+  document.getElementById('hmColor').value=HAB_COLORS[0];
+  document.getElementById('hmFreq').value='daily';
+  document.querySelectorAll('.cswatch').forEach(s=>s.classList.remove('active'));
+  document.querySelector('.cswatch')?.classList.add('active');
+  document.getElementById('habModal').style.display='flex';
+}
+function editHabitModal(hi){
+  const h=getHabits()[hi];if(!h)return;
+  editingHabitIdx=hi;
+  document.getElementById('habModalTitle').textContent='Edit Habit';
+  document.getElementById('hmName').value=h.name;
+  document.getElementById('hmIcon').value=h.icon||'';
+  document.getElementById('hmColor').value=h.color||HAB_COLORS[0];
+  document.getElementById('hmFreq').value=h.freq||'daily';
+  document.querySelectorAll('.cswatch').forEach(s=>{s.classList.toggle('active',s.dataset.color===h.color)});
+  document.getElementById('habModal').style.display='flex';
+}
+function saveHabitModal(){
+  const name=document.getElementById('hmName').value.trim();
+  if(!name){toast('Enter a habit name');return;}
+  const icon=document.getElementById('hmIcon').value.trim()||'🔵';
+  const color=document.getElementById('hmColor').value.trim()||HAB_COLORS[0];
+  const freq=document.getElementById('hmFreq').value;
+  const habits=getHabits();
+  if(editingHabitIdx!=null){
+    habits[editingHabitIdx]={...habits[editingHabitIdx],name,icon,color,freq};
+  } else {
+    habits.push({id:'h'+Date.now(),name,icon,color,freq});
+  }
+  sv(CU,'habits',habits);
+  document.getElementById('habModal').style.display='none';
+  renderHabitsManager();
+  toast(editingHabitIdx!=null?'Habit updated ✓':'Habit added ✓');
+}
+function changeHabFreq(hid,freq){
+  const h=getHabits();const i=h.findIndex(x=>x.id===hid);if(i>=0){h[i].freq=freq;sv(CU,'habits',h);}
+}
+function deleteHabitFull(hid){
+  if(!confirm('Delete this habit? Past check data is kept but the habit will no longer appear.'))return;
+  const h=getHabits().filter(x=>x.id!==hid);sv(CU,'habits',h);renderHabitsManager();toast('Habit deleted');
+}
+
+updateTopbarDate();
+</script>
+</body>
+</html>
