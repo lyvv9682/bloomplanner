@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bloom — Life Ecosystem</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --rose: #e8a0b4;
+  --rose-mid: #f2c4d0;
+  --rose-light: #fbe8ed;
+  --rose-dark: #9a3a5a;
+  --sage: #8fada0;
+  --gold: #c9a96e;
+  --ink: #2a1a1e;
+  --ink-mid: #5a3a42;
+  --ink-light: #9a7a82;
+  --cream: #fdf8f5;
+  --font-d: 'Cormorant Garamond', Georgia, serif;
+  --font-b: 'DM Sans', sans-serif;
+}
+
+html, body { height: 100%; overflow: hidden; font-family: var(--font-b); background: var(--cream); color: var(--ink); }
+
+.screen { display: none; height: 100vh; }
+.screen.active { display: flex; }
+
+/* ════ LOGIN ════ */
+#loginScreen {
+  background: linear-gradient(135deg, #2a1014 0%, #4a2030 40%, #7a3850 70%, #c8748c 100%);
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+
+.lcard {
+  background: rgba(253, 248, 245, 0.98);
+  border-radius: 24px;
+  padding: 44px 40px;
+  width: min(420px, 94vw);
+  box-shadow: 0 30px 90px rgba(0,0,0,0.4);
+}
+
+.llogo {
+  font-family: var(--font-d);
+  font-size: 44px;
+  font-weight: 300;
+  color: var(--rose-dark);
+  text-align: center;
+  letter-spacing: 2px;
+  margin-bottom: 8px;
+}
+
+.ltag {
+  text-align: center;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--ink-light);
+  margin-bottom: 24px;
+}
+
+.ltabs {
+  display: flex;
+  border: 1.5px solid #ddd;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+.ltab {
+  flex: 1;
+  padding: 10px;
+  text-align: center;
+  cursor: pointer;
+  background: white;
+  color: var(--ink-mid);
+  border: none;
+  font-size: 12px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.ltab.active {
+  background: var(--rose-dark);
+  color: white;
+}
+
+.fg { margin-bottom: 14px; }
+.fl { display: block; font-size: 10px; font-weight: 600; color: var(--ink-mid); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px; }
+.fi { width: 100%; padding: 11px 14px; border: 1.5px solid #ddd; border-radius: 10px; font-size: 13px; font-family: var(--font-b); outline: none; transition: all 0.2s; }
+.fi:focus { border-color: var(--rose-dark); background: var(--rose-light); }
+
+.pbtn {
+  width: 100%;
+  padding: 13px;
+  background: linear-gradient(135deg, var(--rose-dark), var(--rose));
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: var(--font-b);
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 4px;
+}
+
+.pbtn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(200,116,140,0.3); }
+.lerr { color: #c0392b; font-size: 11px; text-align: center; margin-top: 8px; min-height: 16px; }
+
+/* ════ APP ════ */
+#appScreen { flex-direction: row; }
+
+.sidebar {
+  width: 220px;
+  background: linear-gradient(180deg, #2a1014 0%, #3d1c28 100%);
+  color: white;
+  padding: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
+.sb-logo {
+  font-family: var(--font-d);
+  font-size: 24px;
+  font-weight: 300;
+  color: var(--rose-mid);
+  letter-spacing: 2px;
+  padding: 20px 18px;
+  border-bottom: 1px solid rgba(232, 160, 180, 0.1);
+}
+
+.sb-user {
+  font-size: 11px;
+  color: rgba(253, 248, 245, 0.6);
+  padding: 0 18px 8px;
+}
+
+.sb-user strong { color: var(--rose-mid); font-weight: 500; }
+
+.sb-nav {
+  padding: 12px 10px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.nav-label {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: rgba(232, 160, 180, 0.35);
+  padding: 10px 8px 4px;
+  margin-top: 8px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  color: rgba(253, 248, 245, 0.6);
+  font-size: 12px;
+  transition: all 0.2s;
+  margin-bottom: 2px;
+}
+
+.nav-item:hover {
+  background: rgba(232, 160, 180, 0.12);
+  color: var(--rose-mid);
+}
+
+.nav-item.active {
+  background: rgba(232, 160, 180, 0.2);
+  color: var(--rose-mid);
+  font-weight: 500;
+}
+
+.sb-bottom {
+  padding: 12px 10px;
+  border-top: 1px solid rgba(232, 160, 180, 0.1);
+}
+
+.logout-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: rgba(253, 248, 245, 0.5);
+  font-size: 11px;
+  padding: 8px 10px;
+  transition: all 0.2s;
+  width: 100%;
+  text-align: left;
+  font-family: var(--font-b);
+}
+
+.logout-btn:hover {
+  color: var(--rose-mid);
+  background: rgba(232, 160, 180, 0.1);
+  border-radius: 8px;
+}
+
+.main-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.topbar {
+  background: white;
+  border-bottom: 1.5px solid #eee;
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.topbar-title {
+  font-family: var(--font-d);
+  font-size: 24px;
+  font-weight: 400;
+}
+
+.topbar-date {
+  font-size: 11px;
+  color: var(--ink-light);
+  background: var(--rose-light);
+  padding: 4px 12px;
+  border-radius: 20px;
+}
+
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+}
+
+.page { display: none; }
+.page.active { display: block; animation: fadeIn 0.3s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+.card {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  margin-bottom: 16px;
+}
+
+.card-title {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--ink-light);
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card-title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #eee;
+}
+
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.grid-item { background: white; border-radius: 12px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); text-align: center; cursor: pointer; transition: all 0.2s; }
+.grid-item:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.12); }
+.grid-val { font-family: var(--font-d); font-size: 28px; font-weight: 400; color: var(--ink); margin: 8px 0; }
+.grid-lbl { font-size: 9px; color: var(--ink-light); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+
+.input-row { display: flex; gap: 8px; align-items: flex-end; }
+.inp { flex: 1; border: 1.5px dashed var(--rose-mid); border-radius: 8px; padding: 8px 12px; font-size: 12px; font-family: var(--font-b); outline: none; }
+.inp:focus { border-color: var(--rose-dark); background: var(--rose-light); }
+.btn { padding: 8px 16px; background: var(--rose-mid); border: none; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 500; transition: all 0.2s; }
+.btn:hover { background: var(--rose-dark); color: white; }
+.btn-danger { background: #f0f0f0; color: #c0392b; }
+.btn-danger:hover { background: #e0e0e0; }
+
+.habit-row {
+  display: grid;
+  grid-template-columns: 140px repeat(7, 28px) 50px 20px;
+  gap: 6px;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.hab-name {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hab-box {
+  width: 28px;
+  height: 28px;
+  border: 1.5px solid #ddd;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-size: 12px;
+  margin: 0 auto;
+}
+
+.hab-box:hover { border-color: var(--rose-dark); background: var(--rose-light); }
+.hab-box.on { background: var(--rose-mid); border-color: var(--rose-dark); color: white; }
+
+.note-item {
+  background: white;
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+  cursor: pointer;
+  transition: all 0.2s;
+  border-left: 4px solid var(--rose-light);
+}
+
+.note-item:hover { transform: translateX(4px); border-left-color: var(--rose-mid); }
+.note-date { font-size: 10px; color: var(--ink-light); margin-bottom: 4px; }
+.note-text { font-size: 12px; color: var(--ink); line-height: 1.4; }
+
+.goal-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.goal-cb {
+  width: 18px;
+  height: 18px;
+  border: 1.5px solid var(--rose-mid);
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  margin-top: 2px;
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+
+.goal-cb:hover { border-color: var(--rose-dark); background: var(--rose-light); }
+.goal-cb.on { background: var(--rose-mid); border-color: var(--rose-dark); color: white; }
+.goal-text { flex: 1; font-size: 12px; color: var(--ink); }
+.goal-text.done { text-decoration: line-through; color: var(--ink-light); }
+
+.streak {
+  text-align: center;
+  padding: 12px;
+  background: var(--rose-light);
+  border-radius: 10px;
+  margin-bottom: 8px;
+}
+
+.streak-num { font-family: var(--font-d); font-size: 32px; font-weight: 400; color: var(--rose-dark); }
+.streak-txt { font-size: 10px; color: var(--ink-light); text-transform: uppercase; letter-spacing: 0.5px; }
+
+.toast { position: fixed; bottom: 20px; right: 20px; background: var(--ink); color: white; padding: 10px 18px; border-radius: 10px; font-size: 12px; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+.toast.show { opacity: 1; }
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--rose-pale); }
+::-webkit-scrollbar-thumb { background: var(--rose-mid); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<!-- ════ LOGIN ════ -->
+<div class="screen active" id="loginScreen">
+  <div class="lcard">
+    <div class="llogo">bloom</div>
+    <div class="ltag">your complete life ecosystem</div>
+    
+    <div class="ltabs">
+      <button class="ltab active" onclick="switchTab('in')">Sign In</button>
+      <button class="ltab" onclick="switchTab('up')">Create</button>
+    </div>
+
+    <div id="loginForm">
+      <div class="fg"><label class="fl">Username</label><input class="fi" id="liU" placeholder="your username" autocomplete="username"></div>
+      <div class="fg"><label class="fl">Password</label><input class="fi" id="liP" type="password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <button class="pbtn" onclick="doLogin()">Sign In →</button>
+      <div style="font-size: 10px; color: var(--ink-light); text-align: center; margin-top: 12px;">Demo: use any username + password on first login</div>
+    </div>
+
+    <div id="signupForm" style="display: none;">
+      <div class="fg"><label class="fl">Your Name</label><input class="fi" id="suN" placeholder="e.g. Sofia"></div>
+      <div class="fg"><label class="fl">Username</label><input class="fi" id="suU" placeholder="choose username"></div>
+      <div class="fg"><label class="fl">Password</label><input class="fi" id="suP" type="password" placeholder="min 4 chars" onkeydown="if(event.key==='Enter')doSignup()"></div>
+      <button class="pbtn" onclick="doSignup()">Create Account →</button>
+    </div>
+
+    <div class="lerr" id="authErr"></div>
+  </div>
+</div>
+
+<!-- ════ APP ════ -->
+<div class="screen" id="appScreen">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sb-logo">bloom</div>
+    <div class="sb-user">Hi <strong id="sbName">friend</strong>! 👋</div>
+
+    <nav class="sb-nav">
+      <div class="nav-label">Ecosystem</div>
+      <div class="nav-item active" id="nav-home" onclick="goTo('home')">🏠 Home</div>
+      <div class="nav-item" id="nav-habits" onclick="goTo('habits')">🔄 Habits</div>
+      <div class="nav-item" id="nav-tasks" onclick="goTo('tasks')">✅ Tasks</div>
+      <div class="nav-item" id="nav-goals" onclick="goTo('goals')">🎯 Goals</div>
+      <div class="nav-item" id="nav-notes" onclick="goTo('notes')">📝 Notes</div>
+      <div class="nav-item" id="nav-journal" onclick="goTo('journal')">📓 Journal</div>
+    </nav>
+
+    <div class="sb-bottom">
+      <button class="logout-btn" onclick="doLogout()">🚪 Sign Out</button>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main-area">
+    <div class="topbar">
+      <div class="topbar-title" id="tbTitle">Home</div>
+      <div class="topbar-date" id="tbDate"></div>
+    </div>
+
+    <div class="content">
+      <div class="page active" id="home"></div>
+      <div class="page" id="habits"></div>
+      <div class="page" id="tasks"></div>
+      <div class="page" id="goals"></div>
+      <div class="page" id="notes"></div>
+      <div class="page" id="journal"></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ════ STATE & HELPERS ════
+let CU = null;
+const NOW = new Date();
+const TODAY_Y = NOW.getFullYear();
+const TODAY_M = NOW.getMonth();
+const TODAY_D = NOW.getDate();
+const DAYS = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+const SHORT_D = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+function ld(u, k, def) {
+  try {
+    const v = localStorage.getItem(`bloom_${u}_${k}`);
+    return v != null ? JSON.parse(v) : def;
+  } catch {
+    return def;
+  }
+}
+
+function sv(u, k, v) {
+  try {
+    localStorage.setItem(`bloom_${u}_${k}`, JSON.stringify(v));
+  } catch {}
+}
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+function getWeekKey() {
+  const d = new Date(NOW);
+  const day = d.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  d.setDate(d.getDate() + diff);
+  const yr = d.getFullYear();
+  const wk = Math.ceil((((new Date(Date.UTC(yr, d.getMonth(), d.getDate())) - new Date(Date.UTC(yr, 0, 1))) / 86400000) + 1) / 7);
+  return `${yr}-W${String(wk).padStart(2, '0')}`;
+}
+
+// ════ AUTH ════
+function switchTab(t) {
+  document.querySelectorAll('.ltab').forEach((el, i) => {
+    el.classList.toggle('active', (t === 'in' && i === 0) || (t === 'up' && i === 1));
+  });
+  document.getElementById('loginForm').style.display = t === 'in' ? 'block' : 'none';
+  document.getElementById('signupForm').style.display = t === 'up' ? 'block' : 'none';
+  document.getElementById('authErr').textContent = '';
+}
+
+function doLogin() {
+  const u = document.getElementById('liU').value.trim();
+  const p = document.getElementById('liP').value;
+  if (!u || !p) { document.getElementById('authErr').textContent = 'Fill in all fields'; return; }
+  const users = JSON.parse(localStorage.getItem('bloomUsers') || '{}');
+  if (!users[u]) { document.getElementById('authErr').textContent = 'Account not found'; return; }
+  if (users[u].pw !== btoa(p)) { document.getElementById('authErr').textContent = 'Wrong password'; return; }
+  loginUser(u, users[u].name);
+}
+
+function doSignup() {
+  const name = document.getElementById('suN').value.trim();
+  const u = document.getElementById('suU').value.trim();
+  const p = document.getElementById('suP').value;
+  if (!name || !u || !p) { document.getElementById('authErr').textContent = 'Fill in all fields'; return; }
+  if (p.length < 4) { document.getElementById('authErr').textContent = 'Password min 4 chars'; return; }
+  const users = JSON.parse(localStorage.getItem('bloomUsers') || '{}');
+  if (users[u]) { document.getElementById('authErr').textContent = 'Username taken'; return; }
+  users[u] = { name, pw: btoa(p) };
+  localStorage.setItem('bloomUsers', JSON.stringify(users));
+  loginUser(u, name);
+}
+
+function loginUser(u, name) {
+  CU = u;
+  document.getElementById('sbName').textContent = name.split(' ')[0];
+  document.getElementById('loginScreen').classList.remove('active');
+  document.getElementById('appScreen').classList.add('active');
+  updateTopbarDate();
+  goTo('home');
+  sessionStorage.setItem('bloomSess', JSON.stringify({ u, name }));
+}
+
+function doLogout() {
+  CU = null;
+  document.getElementById('appScreen').classList.remove('active');
+  document.getElementById('loginScreen').classList.add('active');
+  document.getElementById('liU').value = '';
+  document.getElementById('liP').value = '';
+  sessionStorage.removeItem('bloomSess');
+}
+
+(function() {
+  const s = sessionStorage.getItem('bloomSess');
+  if (s) {
+    try {
+      const { u, name } = JSON.parse(s);
+      loginUser(u, name);
+    } catch {}
+  }
+})();
+
+// ════ NAVIGATION ════
+const TITLES = { home: 'Home', habits: 'Habits Tracker', tasks: 'Weekly Tasks', goals: 'Micro-Goals', notes: 'Quick Notes', journal: 'Journal' };
+
+function goTo(page) {
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  document.getElementById('nav-' + page).classList.add('active');
+  document.getElementById('tbTitle').textContent = TITLES[page] || page;
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(page).classList.add('active');
+
+  const renders = {
+    home: renderHome,
+    habits: renderHabits,
+    tasks: renderTasks,
+    goals: renderGoals,
+    notes: renderNotes,
+    journal: renderJournal
+  };
+
+  if (renders[page]) {
+    document.getElementById(page).innerHTML = renders[page]();
+  }
+}
+
+function updateTopbarDate() {
+  document.getElementById('tbDate').textContent = NOW.toLocaleDateString('en-GB', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  });
+}
+
+// ════ HOME ════
+function renderHome() {
+  const habits = ld(CU, 'habits', [
+    { id: 'h1', name: 'Morning walk', checks: [0,0,0,0,0,0,0] },
+    { id: 'h2', name: 'Drink water', checks: [0,0,0,0,0,0,0] },
+    { id: 'h3', name: 'Read', checks: [0,0,0,0,0,0,0] }
+  ]);
+  const hc = ld(CU, 'hc_' + getWeekKey(), {});
+  let hDone = 0, hTotal = 0;
+  habits.forEach(h => {
+    for (let i = 0; i < 7; i++) {
+      hTotal++;
+      if (hc[h.id] && hc[h.id][i]) hDone++;
+    }
+  });
+  const hPct = hTotal > 0 ? Math.round(hDone / hTotal * 100) : 0;
+
+  const tasks = ld(CU, 'tasks_' + getWeekKey(), {});
+  const allT = Object.values(tasks).flat();
+  const tDone = allT.filter(t => t.done).length;
+  const tPct = allT.length > 0 ? Math.round(tDone / allT.length * 100) : 0;
+
+  const goals = ld(CU, 'goals', []);
+  const gDone = goals.filter(g => g.done).length;
+  const gPct = goals.length > 0 ? Math.round(gDone / goals.length * 100) : 0;
+
+  const notes = ld(CU, 'notes', []);
+  const journal = ld(CU, 'journal', []);
+
+  return `
+    <div style="font-family: var(--font-d); font-size: 32px; font-weight: 300; margin-bottom: 8px;">Welcome back! 🌸</div>
+    <div style="font-size: 13px; color: var(--ink-light); margin-bottom: 24px;">Your complete life ecosystem at a glance</div>
+
+    <div class="grid">
+      <div class="grid-item" onclick="goTo('habits')" style="background: linear-gradient(135deg, var(--rose-light), var(--rose-pale)); cursor: pointer;">
+        <div class="grid-lbl">🔄 Habits</div>
+        <div class="grid-val">${hPct}%</div>
+      </div>
+      <div class="grid-item" onclick="goTo('tasks')" style="background: linear-gradient(135deg, #d4e8e0, #f0f8f4); cursor: pointer;">
+        <div class="grid-lbl">✅ Tasks</div>
+        <div class="grid-val">${tPct}%</div>
+      </div>
+      <div class="grid-item" onclick="goTo('goals')" style="background: linear-gradient(135deg, #f0e4cc, #fdf8ee); cursor: pointer;">
+        <div class="grid-lbl">🎯 Goals</div>
+        <div class="grid-val">${gPct}%</div>
+      </div>
+      <div class="grid-item" onclick="goTo('notes')" style="background: linear-gradient(135deg, #fff0f5, #fff8fc); cursor: pointer;">
+        <div class="grid-lbl">📝 Notes</div>
+        <div class="grid-val">${notes.length}</div>
+      </div>
+      <div class="grid-item" onclick="goTo('journal')" style="background: linear-gradient(135deg, #f0e4f5, #f8f0fc); cursor: pointer;">
+        <div class="grid-lbl">📓 Journal</div>
+        <div class="grid-val">${journal.length}</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🌿 This Week</div>
+      <div style="font-size: 13px; color: var(--ink); line-height: 1.8;">
+        <strong>${hDone}/${hTotal}</strong> habit checks completed<br>
+        <strong>${tDone}/${allT.length}</strong> tasks done<br>
+        <strong>${gDone}/${goals.length}</strong> goals completed
+      </div>
+    </div>
+  `;
+}
+
+// ════ HABITS ════
+function renderHabits() {
+  const habits = ld(CU, 'habits', [
+    { id: 'h1', name: 'Morning walk', checks: [0,0,0,0,0,0,0] },
+    { id: 'h2', name: 'Drink 2L water', checks: [0,0,0,0,0,0,0] },
+    { id: 'h3', name: 'Read 10 pages', checks: [0,0,0,0,0,0,0] }
+  ]);
+  const hc = ld(CU, 'hc_' + getWeekKey(), {});
+
+  const rows = habits.map((h, hi) => {
+    const done = h.checks.filter(Boolean).length;
+    const pct = Math.round(done / 7 * 100);
+    const boxes = h.checks.map((c, d) => {
+      const on = hc[h.id] && hc[h.id][d];
+      return `<div class="hab-box ${on ? 'on' : ''}" onclick="toggleHab('${h.id}', ${d})">${on ? '✓' : ''}</div>`;
+    }).join('');
+    return `<div class="habit-row">
+      <div class="hab-name">${h.name}</div>
+      ${boxes}
+      <div style="font-size: 10px; color: var(--ink-mid); text-align: right;">${pct}%</div>
+      <button class="btn btn-danger" style="padding: 4px 6px; font-size: 10px;" onclick="deleteHabit('${h.id}')">✕</button>
+    </div>`;
+  }).join('');
+
+  return `
+    <div class="card">
+      <div class="card-title">🔄 Habit Tracker — This Week</div>
+      <div style="display: grid; grid-template-columns: 140px repeat(7, 28px) 50px 20px; gap: 6px; font-size: 9px; font-weight: 600; color: var(--ink-light); text-align: center; margin-bottom: 8px; padding-bottom: 4px; border-bottom: 1px solid #eee;">
+        <div style="text-align: left;">Habit</div>
+        ${SHORT_D.map(d => `<div>${d}</div>`).join('')}
+        <div>%</div><div></div>
+      </div>
+      ${rows}
+      <div class="input-row" style="margin-top: 12px;">
+        <input class="inp" id="newHab" placeholder="Add new habit…" onkeydown="if(event.key==='Enter')addHabit()">
+        <button class="btn" onclick="addHabit()">+ Add</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">✨ Streaks</div>
+      ${habits.map(h => {
+        const done = h.checks.filter(Boolean).length;
+        return `<div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f0f0f0;">
+          <div style="font-size: 12px;">${h.name}</div>
+          <div style="font-family: var(--font-d); font-size: 22px; font-weight: 400; color: var(--rose-dark);">${done} 🔥</div>
+        </div>`;
+      }).join('')}
+    </div>
+  `;
+}
+
+function toggleHab(hid, d) {
+  const hc = ld(CU, 'hc_' + getWeekKey(), {});
+  if (!hc[hid]) hc[hid] = {};
+  hc[hid][d] = !hc[hid][d];
+  sv(CU, 'hc_' + getWeekKey(), hc);
+  renderHabits();
+  toast(hc[hid][d] ? '✓ Great job!' : 'Unmarked');
+}
+
+function addHabit() {
+  const inp = document.getElementById('newHab');
+  const name = inp.value.trim();
+  if (!name) return;
+  const h = ld(CU, 'habits', []);
+  h.push({ id: 'h' + Date.now(), name, checks: [0,0,0,0,0,0,0] });
+  sv(CU, 'habits', h);
+  inp.value = '';
+  renderHabits();
+  toast('Habit added! 🎯');
+}
+
+function deleteHabit(hid) {
+  if (!confirm('Delete this habit?')) return;
+  const h = ld(CU, 'habits', []).filter(x => x.id !== hid);
+  sv(CU, 'habits', h);
+  renderHabits();
+  toast('Habit removed');
+}
+
+// ════ TASKS ════
+function renderTasks() {
+  const tasks = ld(CU, 'tasks_' + getWeekKey(), {});
+  const wk = getWeekKey();
+
+  const cols = DAYS.map((day, d) => {
+    const dtasks = tasks[day] || [];
+    const done = dtasks.filter(t => t.done).length;
+    const pct = dtasks.length > 0 ? Math.round(done / dtasks.length * 100) : 0;
+
+    const rows = dtasks.map((t, ti) => `
+      <div class="goal-item">
+        <div class="goal-cb ${t.done ? 'on' : ''}" onclick="toggleTask('${wk}', '${day}', ${ti})">${t.done ? '✓' : ''}</div>
+        <div class="goal-text ${t.done ? 'done' : ''}" contenteditable="true" onblur="renameTask('${wk}', '${day}', ${ti}, this)">${t.text}</div>
+        <button class="btn btn-danger" style="padding: 3px 6px; font-size: 10px; margin: 0;" onclick="delTask('${wk}', '${day}', ${ti})">✕</button>
+      </div>`).join('');
+
+    return `<div class="card" style="flex: 1; min-width: 160px;">
+      <div class="card-title" style="margin-bottom: 8px;">${day}</div>
+      <div style="font-size: 24px; font-weight: 300; color: var(--rose-dark); margin-bottom: 12px;">${pct}%</div>
+      <div>${rows}</div>
+      <div class="input-row" style="margin-top: 8px;">
+        <input class="inp" style="font-size: 10px; padding: 6px;" placeholder="Add task…" onkeydown="if(event.key==='Enter')addTask('${wk}', '${day}', this)">
+        <button class="btn" style="padding: 6px 10px; font-size: 10px;" onclick="addTask('${wk}', '${day}', this.previousElementSibling)">+</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  return `
+    <div style="display: flex; gap: 10px; overflow-x: auto; padding-bottom: 8px;">
+      ${cols}
+    </div>
+  `;
+}
+
+function toggleTask(wk, day, ti) {
+  const t = ld(CU, 'tasks_' + wk, {});
+  t[day][ti].done = !t[day][ti].done;
+  sv(CU, 'tasks_' + wk, t);
+  renderTasks();
+}
+
+function renameTask(wk, day, ti, el) {
+  const t = ld(CU, 'tasks_' + wk, {});
+  if (t[day] && t[day][ti]) t[day][ti].text = el.innerText.trim();
+  sv(CU, 'tasks_' + wk, t);
+}
+
+function delTask(wk, day, ti) {
+  const t = ld(CU, 'tasks_' + wk, {});
+  if (t[day]) t[day].splice(ti, 1);
+  sv(CU, 'tasks_' + wk, t);
+  renderTasks();
+}
+
+function addTask(wk, day, inp) {
+  const v = inp.value.trim();
+  if (!v) return;
+  const t = ld(CU, 'tasks_' + wk, {});
+  if (!t[day]) t[day] = [];
+  t[day].push({ text: v, done: false });
+  sv(CU, 'tasks_' + wk, t);
+  inp.value = '';
+  renderTasks();
+  toast('Task added ✓');
+}
+
+// ════ GOALS ════
+function renderGoals() {
+  const goals = ld(CU, 'goals', []);
+  const rows = goals.map((g, gi) => `
+    <div class="goal-item">
+      <div class="goal-cb ${g.done ? 'on' : ''}" onclick="toggleGoal(${gi})">${g.done ? '✓' : ''}</div>
+      <div class="goal-text ${g.done ? 'done' : ''}" contenteditable="true" onblur="renameGoal(${gi}, this)">${g.text}</div>
+      <button class="btn btn-danger" style="padding: 3px 6px; font-size: 10px; margin: 0;" onclick="delGoal(${gi})">✕</button>
+    </div>`).join('');
+
+  const done = goals.filter(g => g.done).length;
+  const pct = goals.length > 0 ? Math.round(done / goals.length * 100) : 0;
+
+  return `
+    <div class="card">
+      <div class="card-title">🎯 Micro-Actions for Today</div>
+      <div style="font-size: 24px; font-weight: 300; color: var(--gold); margin-bottom: 12px;">${pct}%</div>
+      ${rows}
+      <div class="input-row" style="margin-top: 12px;">
+        <input class="inp" id="newGoal" placeholder="Add a micro-goal…" onkeydown="if(event.key==='Enter')addGoal()">
+        <button class="btn" onclick="addGoal()">+ Add</button>
+      </div>
+    </div>
+  `;
+}
+
+function toggleGoal(gi) {
+  const g = ld(CU, 'goals', []);
+  g[gi].done = !g[gi].done;
+  sv(CU, 'goals', g);
+  renderGoals();
+  toast(g[gi].done ? '✓ Micro-action done!' : 'Unmarked');
+}
+
+function renameGoal(gi, el) {
+  const g = ld(CU, 'goals', []);
+  if (g[gi]) g[gi].text = el.innerText.trim();
+  sv(CU, 'goals', g);
+}
+
+function delGoal(gi) {
+  const g = ld(CU, 'goals', []).filter((_, i) => i !== gi);
+  sv(CU, 'goals', g);
+  renderGoals();
+}
+
+function addGoal() {
+  const inp = document.getElementById('newGoal');
+  const v = inp.value.trim();
+  if (!v) return;
+  const g = ld(CU, 'goals', []);
+  g.push({ text: v, done: false });
+  sv(CU, 'goals', g);
+  inp.value = '';
+  renderGoals();
+  toast('Goal added! 💪');
+}
+
+// ════ NOTES ════
+function renderNotes() {
+  const notes = ld(CU, 'notes', []);
+  const reversed = [...notes].reverse();
+
+  const items = reversed.map((n, ri) => {
+    const i = notes.length - 1 - ri;
+    return `<div class="note-item" onclick="viewNote(${i})">
+      <div class="note-date">${new Date(n.ts).toLocaleDateString('en-GB')} ${new Date(n.ts).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</div>
+      <div class="note-text">${n.text.substring(0, 80)}${n.text.length > 80 ? '…' : ''}</div>
+    </div>`;
+  }).join('') || '<div style="color: var(--ink-light); font-size: 12px; padding: 20px 0; text-align: center;">No notes yet. Jot something down below! 📝</div>';
+
+  return `
+    <div class="card">
+      <div class="card-title">✍️ Quick Note</div>
+      <textarea class="inp" id="noteText" placeholder="Jot something down…" style="width: 100%; min-height: 100px; padding: 12px; border: 1.5px dashed var(--rose-mid); resize: vertical;"></textarea>
+      <button class="btn" style="margin-top: 8px;" onclick="saveNote()">Save Note →</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📚 All Notes</div>
+      ${items}
+    </div>
+  `;
+}
+
+function saveNote() {
+  const txt = document.getElementById('noteText').value.trim();
+  if (!txt) return;
+  const notes = ld(CU, 'notes', []);
+  notes.push({ text: txt, ts: Date.now() });
+  sv(CU, 'notes', notes);
+  document.getElementById('noteText').value = '';
+  renderNotes();
+  toast('Note saved 📝');
+}
+
+function viewNote(i) {
+  const notes = ld(CU, 'notes', []);
+  const n = notes[i];
+  if (!n) return;
+  alert(n.text);
+}
+
+// ════ JOURNAL ════
+function renderJournal() {
+  const entries = ld(CU, 'journal', []);
+  const reversed = [...entries].reverse();
+
+  const items = reversed.map((e, ri) => {
+    const i = entries.length - 1 - ri;
+    return `<div class="note-item" onclick="viewEntry(${i})">
+      <div class="note-date">${new Date(e.ts).toLocaleDateString('en-GB')}</div>
+      <div class="note-text">${e.text.substring(0, 80)}${e.text.length > 80 ? '…' : ''}</div>
+    </div>`;
+  }).join('') || '<div style="color: var(--ink-light); font-size: 12px; padding: 20px 0; text-align: center;">No journal entries yet. Start reflecting! 📓</div>';
+
+  return `
+    <div class="card">
+      <div class="card-title">✨ New Entry</div>
+      <div style="font-size: 11px; color: var(--ink-light); margin-bottom: 8px;">💭 What's on your mind?</div>
+      <textarea class="inp" id="journalText" placeholder="Write your thoughts, dreams, reflections…" style="width: 100%; min-height: 140px; padding: 12px; border: 1.5px dashed var(--rose-mid); resize: vertical;"></textarea>
+      <button class="btn" style="margin-top: 8px;" onclick="saveEntry()">Save Entry →</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📖 All Entries</div>
+      ${items}
+    </div>
+  `;
+}
+
+function saveEntry() {
+  const txt = document.getElementById('journalText').value.trim();
+  if (!txt) return;
+  const entries = ld(CU, 'journal', []);
+  entries.push({ text: txt, ts: Date.now() });
+  sv(CU, 'journal', entries);
+  document.getElementById('journalText').value = '';
+  renderJournal();
+  toast('Entry saved 🌸');
+}
+
+function viewEntry(i) {
+  const entries = ld(CU, 'journal', []);
+  const e = entries[i];
+  if (!e) return;
+  alert(e.text);
+}
+
+updateTopbarDate();
+</script>
+
+</body>
+</html>
